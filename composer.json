@@ -23,7 +23,8 @@
     },
     "config": {
         "allow-plugins": {
-            "symfony/runtime": true
+            "symfony/runtime": true,
+            "phpstan/extension-installer": true
         },
         "sort-packages": true
     },
@@ -40,6 +41,18 @@
     "scripts": {
         "auto-scripts": {
             "cache:clear": "symfony-cmd"
-        }
+        },
+        "lint": [
+            "php-cs-fixer fix --dry-run --diff",
+            "phpstan analyse --no-progress"
+        ],
+        "fix": "php-cs-fixer fix"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.88",
+        "phpstan/extension-installer": "^1.4",
+        "phpstan/phpstan": "^2.1",
+        "phpstan/phpstan-doctrine": "^2.0",
+        "phpstan/phpstan-symfony": "^2.0"
     }
 }
