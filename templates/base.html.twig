@@ -17,6 +17,14 @@
             </div>
         </header>
         <main class="container">
+            {% for type, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="flash flash-{{ type }}" role="status" data-controller="dismiss">
+                        <span>{{ message }}</span>
+                        <button type="button" class="flash-close" data-action="dismiss#close" aria-label="Dismiss">&times;</button>
+                    </div>
+                {% endfor %}
+            {% endfor %}
             {% block body %}{% endblock %}
         </main>
     </body>

@@ -99,3 +99,32 @@ main {
     box-shadow: var(--shadow);
     padding: 1rem 1.25rem;
 }
+
+.flash {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding: .6rem 1rem;
+    border-radius: var(--radius);
+    background: var(--green-100);
+    transition: opacity .2s;
+}
+
+.flash-error {
+    background: #fde8e7;
+    color: var(--red-600);
+}
+
+.flash.is-leaving {
+    opacity: 0;
+}
+
+.flash-close {
+    border: 0;
+    background: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+    color: inherit;
+}
