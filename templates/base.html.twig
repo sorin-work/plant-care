@@ -14,6 +14,15 @@
         <header class="site-header">
             <div class="container">
                 <a class="brand" href="{{ path('home') }}">Plant care</a>
+                <nav class="site-nav">
+                    {% if app.user %}
+                        <span class="muted-inverse">{{ app.user.displayName }}</span>
+                        <a href="{{ path('app_logout') }}">Sign out</a>
+                    {% else %}
+                        <a href="{{ path('app_login') }}">Sign in</a>
+                        <a href="{{ path('app_register') }}">Create account</a>
+                    {% endif %}
+                </nav>
             </div>
         </header>
         <main class="container">

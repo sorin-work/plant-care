@@ -3,10 +3,13 @@
 namespace App\Tests\Functional;
 
 use App\Repository\UserRepository;
+use App\Tests\Support\Factory;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 final class RegistrationTest extends WebTestCase
 {
+    use Factory;
+
     public function testUserCanRegister(): void
     {
         $client = static::createClient();
@@ -20,6 +23,8 @@ final class RegistrationTest extends WebTestCase
         ]);
 
         self::assertResponseRedirects('/');
+        $client->followRedirect();
+        self::assertSelectorTextContains('h1', 'Hello, Ana');
         $user = static::getContainer()->get(UserRepository::class)->findOneByEmail('ana@example.com');
         self::assertNotNull($user);
         self::assertSame('Ana', $user->getDisplayName());
@@ -43,14 +48,14 @@ final class RegistrationTest extends WebTestCase
     public function testDuplicateEmailIsRejected(): void
     {
         $client = static::createClient();
-        foreach (['first', 'second'] as $name) {
-            $client->request('GET', '/register');
-            $client->submitForm('Create account', [
-                'registration_form[displayName]' => $name,
-                'registration_form[email]' => 'same@example.com',
-                'registration_form[plainPassword]' => 'long-enough-1',
-            ]);
-        }
+        $this->createUser('same@example.com', 'First');
+
+        $client->request('GET', '/register');
+        $client->submitForm('Create account', [
+            'registration_form[displayName]' => 'Second',
+            'registration_form[email]' => 'Same@example.com',
+            'registration_form[plainPassword]' => 'long-enough-1',
+        ]);
 
         self::assertResponseStatusCodeSame(422);
         self::assertSelectorTextContains('form', 'already an account');

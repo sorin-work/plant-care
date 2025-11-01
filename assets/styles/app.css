@@ -174,3 +174,25 @@ form ul {
     color: var(--red-600);
     font-size: .9rem;
 }
+
+.site-nav {
+    display: flex;
+    gap: 1rem;
+    margin-left: auto;
+    align-items: center;
+}
+
+.muted {
+    color: var(--gray-500);
+}
+
+.muted-inverse {
+    color: rgb(255 255 255 / 70%);
+}
+
+.checkbox label {
+    display: flex;
+    gap: .5rem;
+    align-items: center;
+    font-weight: 400;
+}
