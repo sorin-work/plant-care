@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Create an account · {{ parent() }}{% endblock %}
+
+{% block body %}
+    <section class="card narrow">
+        <h1>Create an account</h1>
+        {{ form_start(form, {attr: {novalidate: 'novalidate'}}) }}
+            {{ form_row(form.displayName) }}
+            {{ form_row(form.email) }}
+            {{ form_row(form.plainPassword) }}
+            <button type="submit" class="btn">Create account</button>
+        {{ form_end(form) }}
+    </section>
+{% endblock %}

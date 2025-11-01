@@ -128,3 +128,49 @@ main {
     cursor: pointer;
     color: inherit;
 }
+
+.narrow {
+    max-width: 440px;
+    margin: 2rem auto;
+}
+
+form > div,
+.form-row {
+    margin-bottom: 1rem;
+}
+
+label {
+    display: block;
+    margin-bottom: .25rem;
+    font-weight: 600;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+select,
+textarea {
+    width: 100%;
+    padding: .5rem .65rem;
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    font: inherit;
+    background: #fff;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: 2px solid var(--green-100);
+    border-color: var(--green-600);
+}
+
+form ul {
+    margin: .25rem 0 0;
+    padding: 0;
+    list-style: none;
+    color: var(--red-600);
+    font-size: .9rem;
+}
