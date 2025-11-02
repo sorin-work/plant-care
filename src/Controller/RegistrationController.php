@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Form\RegistrationFormType;
+use App\Household\HouseholdManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -15,7 +16,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class RegistrationController extends AbstractController
 {
     #[Route('/register', name: 'app_register', methods: ['GET', 'POST'])]
-    public function register(Request $request, UserPasswordHasherInterface $hasher, EntityManagerInterface $em, Security $security): Response
+    public function register(Request $request, UserPasswordHasherInterface $hasher, EntityManagerInterface $em, Security $security, HouseholdManager $households): Response
     {
         if ($this->getUser()) {
             return $this->redirectToRoute('home');
@@ -31,6 +32,7 @@ final class RegistrationController extends AbstractController
             $user->setPassword($hasher->hashPassword($user, $plainPassword));
 
             $em->persist($user);
+            $households->create($user);
             $em->flush();
 
             $this->addFlash('success', 'Welcome! Your account has been created.');

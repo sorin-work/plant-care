@@ -2,6 +2,8 @@
 
 namespace App\Tests\Functional;
 
+use App\Enum\HouseholdRole;
+use App\Repository\MembershipRepository;
 use App\Repository\UserRepository;
 use App\Tests\Support\Factory;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -29,6 +31,11 @@ final class RegistrationTest extends WebTestCase
         self::assertNotNull($user);
         self::assertSame('Ana', $user->getDisplayName());
         self::assertNotSame('monstera-123', $user->getPassword());
+
+        $memberships = static::getContainer()->get(MembershipRepository::class)->findForUser($user);
+        self::assertCount(1, $memberships);
+        self::assertSame("Ana's home", $memberships[0]->getHousehold()->getName());
+        self::assertSame(HouseholdRole::Owner, $memberships[0]->getRole());
     }
 
     public function testShortPasswordIsRejected(): void
