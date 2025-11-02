@@ -196,3 +196,11 @@ form ul {
     align-items: center;
     font-weight: 400;
 }
+
+.household-switch select {
+    width: auto;
+    padding: .2rem .5rem;
+    background: var(--green-700);
+    color: #fff;
+    border-color: transparent;
+}

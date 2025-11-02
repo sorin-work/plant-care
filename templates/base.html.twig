@@ -16,6 +16,20 @@
                 <a class="brand" href="{{ path('home') }}">Plant care</a>
                 <nav class="site-nav">
                     {% if app.user %}
+                        {% set households = my_households() %}
+                        {% if households|length > 1 %}
+                            <form method="post" class="household-switch" action="#" data-controller="household-switch">
+                                <select aria-label="Household" data-action="household-switch#go">
+                                    {% for membership in households %}
+                                        {% set h = membership.household %}
+                                        <option value="{{ path('household_switch', {id: h.id}) }}" {{ h.id == current_household().id ? 'selected' }}>{{ h.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <input type="hidden" name="_token" value="{{ csrf_token('switch-household') }}">
+                            </form>
+                        {% else %}
+                            <span class="muted-inverse">{{ current_household().name }}</span>
+                        {% endif %}
                         <span class="muted-inverse">{{ app.user.displayName }}</span>
                         <a href="{{ path('app_logout') }}">Sign out</a>
                     {% else %}

@@ -2,7 +2,10 @@
 
 namespace App\Tests\Support;
 
+use App\Entity\Household;
+use App\Entity\Membership;
 use App\Entity\User;
+use App\Enum\HouseholdRole;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
@@ -27,5 +30,24 @@ trait Factory
         $this->em()->flush();
 
         return $user;
+    }
+
+    protected function createHousehold(User $owner, string $name = 'Home'): Household
+    {
+        $household = new Household($name);
+        $this->em()->persist($household);
+        $this->em()->persist(new Membership($household, $owner, HouseholdRole::Owner));
+        $this->em()->flush();
+
+        return $household;
+    }
+
+    protected function addMember(Household $household, User $user, HouseholdRole $role): Membership
+    {
+        $membership = new Membership($household, $user, $role);
+        $this->em()->persist($membership);
+        $this->em()->flush();
+
+        return $membership;
     }
 }
