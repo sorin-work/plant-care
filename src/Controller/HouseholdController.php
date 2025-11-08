@@ -3,7 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\Household;
+use App\Enum\HouseholdRole;
+use App\Form\HouseholdSettingsType;
 use App\Household\CurrentHousehold;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -14,6 +17,31 @@ final class HouseholdController extends AbstractController
 {
     public function __construct(private readonly CurrentHousehold $current)
     {
+    }
+
+    #[Route('/settings', name: 'household_settings', methods: ['GET', 'POST'])]
+    public function settings(Request $request, EntityManagerInterface $em): Response
+    {
+        $membership = $this->current->membership();
+        if (HouseholdRole::Owner !== $membership->getRole()) {
+            throw $this->createAccessDeniedException('Only the owner can change household settings.');
+        }
+
+        $household = $membership->getHousehold();
+        $form = $this->createForm(HouseholdSettingsType::class, $household);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $em->flush();
+            $this->addFlash('success', 'Household settings saved.');
+
+            return $this->redirectToRoute('household_settings');
+        }
+
+        return $this->render('household/settings.html.twig', [
+            'form' => $form,
+            'household' => $household,
+        ], new Response(status: $form->isSubmitted() ? 422 : 200));
     }
 
     #[Route('/{id}/switch', name: 'household_switch', methods: ['POST'], requirements: ['id' => '\d+'])]

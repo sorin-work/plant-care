@@ -204,3 +204,9 @@ form ul {
     color: #fff;
     border-color: transparent;
 }
+
+.help-text {
+    margin-top: .25rem;
+    font-size: .875rem;
+    color: var(--gray-500);
+}

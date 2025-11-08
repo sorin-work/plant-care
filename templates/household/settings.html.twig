@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Household settings · {{ parent() }}{% endblock %}
+
+{% block body %}
+    <section class="card narrow">
+        <h1>Household settings</h1>
+        {{ form_start(form) }}
+            {{ form_row(form.name) }}
+            {{ form_row(form.timezone) }}
+            {{ form_row(form.hemisphere) }}
+            <button type="submit" class="btn">Save</button>
+        {{ form_end(form) }}
+    </section>
+{% endblock %}
