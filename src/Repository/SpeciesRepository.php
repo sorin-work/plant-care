@@ -20,4 +20,22 @@ class SpeciesRepository extends ServiceEntityRepository
     {
         return $this->findOneBy(['scientificName' => $name]);
     }
+
+    /**
+     * @return list<Species>
+     */
+    public function search(?string $query): array
+    {
+        $qb = $this->createQueryBuilder('s')->orderBy('s.commonName', 'ASC');
+        $query = trim((string) $query);
+        if ('' !== $query) {
+            $qb->where('LOWER(s.commonName) LIKE :q OR LOWER(s.scientificName) LIKE :q')
+                ->setParameter('q', '%'.mb_strtolower($query).'%');
+        }
+
+        /** @var list<Species> $result */
+        $result = $qb->getQuery()->getResult();
+
+        return $result;
+    }
 }

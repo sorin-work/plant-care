@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Species · {{ parent() }}{% endblock %}
+
+{% block body %}
+    <div class="page-header">
+        <h1>Species catalog</h1>
+        <form method="get" class="search">
+            <input type="search" name="q" value="{{ query }}" placeholder="Search by name" aria-label="Search species">
+            <button type="submit" class="btn btn-secondary">Search</button>
+        </form>
+    </div>
+
+    {% if species is empty %}
+        <p class="empty">No species match “{{ query }}”.</p>
+    {% else %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Light</th>
+                    <th>Water every</th>
+                    <th>Fertilize every</th>
+                    <th>Pet safe</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in species %}
+                    <tr>
+                        <td>
+                            <a href="{{ path('species_show', {id: s.id}) }}">{{ s.commonName }}</a>
+                            <div class="muted"><em>{{ s.scientificName }}</em></div>
+                        </td>
+                        <td>{{ s.light.label }}</td>
+                        <td>{{ s.waterIntervalDays }} days</td>
+                        <td>{{ s.fertilizeIntervalDays ? s.fertilizeIntervalDays ~ ' days' : 'never' }}</td>
+                        <td>{{ s.toxicToPets ? 'No' : 'Yes' }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}

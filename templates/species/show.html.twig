@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ species.commonName }} · {{ parent() }}{% endblock %}
+
+{% block body %}
+    <p><a href="{{ path('species_index') }}">&larr; All species</a></p>
+    <section class="card">
+        <h1>{{ species.commonName }}</h1>
+        <p class="muted"><em>{{ species.scientificName }}</em></p>
+        <dl class="facts">
+            <dt>Light</dt><dd>{{ species.light.label }}</dd>
+            <dt>Water</dt><dd>every {{ species.waterIntervalDays }} days</dd>
+            <dt>Fertilize</dt><dd>{{ species.fertilizeIntervalDays ? 'every ' ~ species.fertilizeIntervalDays ~ ' days' : 'never' }}</dd>
+            <dt>Repot</dt><dd>every {{ species.repotIntervalMonths }} months</dd>
+            <dt>Pets</dt><dd>{{ species.toxicToPets ? 'Toxic to cats and dogs' : 'Pet safe' }}</dd>
+        </dl>
+        {% if species.careNotes %}
+            <p>{{ species.careNotes }}</p>
+        {% endif %}
+    </section>
+{% endblock %}

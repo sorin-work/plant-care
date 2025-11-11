@@ -14,6 +14,11 @@
         <header class="site-header">
             <div class="container">
                 <a class="brand" href="{{ path('home') }}">Plant care</a>
+                {% if app.user %}
+                    <nav class="main-nav">
+                        <a href="{{ path('species_index') }}">Species</a>
+                    </nav>
+                {% endif %}
                 <nav class="site-nav">
                     {% if app.user %}
                         {% set households = my_households() %}
