@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Rooms · {{ parent() }}{% endblock %}
+
+{% block body %}
+    <div class="page-header">
+        <h1>Rooms</h1>
+    </div>
+
+    <div class="grid-2">
+        <section>
+            {% if rooms is empty %}
+                <p class="empty">No rooms yet. Add the rooms your plants live in.</p>
+            {% else %}
+                <ul class="list card">
+                    {% for room in rooms %}
+                        <li>
+                            <span>{{ room.name }}</span>
+                            <span class="actions">
+                                <a href="{{ path('room_edit', {id: room.id}) }}">Rename</a>
+                                <form method="post" action="{{ path('room_delete', {id: room.id}) }}" class="inline" onsubmit="return confirm('Remove this room? Plants in it are kept.')">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete-room-' ~ room.id) }}">
+                                    <button type="submit" class="link danger">Remove</button>
+                                </form>
+                            </span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </section>
+        <section class="card">
+            <h2>Add a room</h2>
+            {{ form_start(form) }}
+                {{ form_row(form.name) }}
+                <button type="submit" class="btn">Add room</button>
+            {{ form_end(form) }}
+        </section>
+    </div>
+{% endblock %}

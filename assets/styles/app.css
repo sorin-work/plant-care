@@ -280,3 +280,59 @@ form ul {
     display: flex;
     gap: 1rem;
 }
+
+.grid-2 {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+@media (max-width: 760px) {
+    .grid-2 {
+        grid-template-columns: 1fr;
+    }
+}
+
+.list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: .6rem 0;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.list li:last-child {
+    border-bottom: 0;
+}
+
+.actions {
+    display: flex;
+    gap: .75rem;
+    align-items: center;
+}
+
+form.inline {
+    display: inline;
+    margin: 0;
+}
+
+.link {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--green-700);
+    font: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.danger {
+    color: var(--red-600);
+}

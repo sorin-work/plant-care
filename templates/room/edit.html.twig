@@ -1,0 +1,14 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Rename {{ room.name }} · {{ parent() }}{% endblock %}
+
+{% block body %}
+    <section class="card narrow">
+        <h1>Rename room</h1>
+        {{ form_start(form) }}
+            {{ form_row(form.name) }}
+            <button type="submit" class="btn">Save</button>
+            <a href="{{ path('room_index') }}" class="btn btn-secondary">Cancel</a>
+        {{ form_end(form) }}
+    </section>
+{% endblock %}
