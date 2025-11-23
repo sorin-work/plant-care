@@ -369,3 +369,20 @@ form.inline {
     color: var(--green-900);
     font-size: .8rem;
 }
+
+.form-card {
+    max-width: 680px;
+    margin: 0 auto;
+}
+
+.grid-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 1rem;
+}
+
+@media (max-width: 560px) {
+    .grid-fields {
+        grid-template-columns: 1fr;
+    }
+}

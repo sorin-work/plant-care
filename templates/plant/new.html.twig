@@ -1,0 +1,10 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Add a plant · {{ parent() }}{% endblock %}
+
+{% block body %}
+    <section class="card form-card">
+        <h1>Add a plant</h1>
+        {{ include('plant/_form.html.twig', {button_label: 'Add plant', cancel_path: path('plant_index')}) }}
+    </section>
+{% endblock %}

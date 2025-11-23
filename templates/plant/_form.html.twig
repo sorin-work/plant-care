@@ -1,0 +1,12 @@
+{{ form_start(form) }}
+    {{ form_row(form.name) }}
+    <div class="grid-fields">
+        {{ form_row(form.species) }}
+        {{ form_row(form.room) }}
+        {{ form_row(form.light) }}
+        {{ form_row(form.acquiredOn) }}
+    </div>
+    {{ form_row(form.notes) }}
+    <button type="submit" class="btn">{{ button_label }}</button>
+    <a href="{{ cancel_path }}" class="btn btn-secondary">Cancel</a>
+{{ form_end(form) }}

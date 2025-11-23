@@ -5,15 +5,16 @@
 {% block body %}
     <div class="page-header">
         <h1>Plants</h1>
+        <a href="{{ path('plant_new') }}" class="btn">Add a plant</a>
     </div>
 
     {% if plants is empty %}
-        <p class="empty">No plants yet.</p>
+        <p class="empty">No plants yet. <a href="{{ path('plant_new') }}">Add your first plant</a>.</p>
     {% else %}
         <ul class="plant-grid">
             {% for plant in plants %}
                 <li class="card plant-card">
-                    <h2>{{ plant.name }}</h2>
+                    <h2><a href="{{ path('plant_edit', {id: plant.id}) }}">{{ plant.name }}</a></h2>
                     {% if plant.species %}
                         <p class="muted"><em>{{ plant.species.scientificName }}</em></p>
                     {% endif %}
