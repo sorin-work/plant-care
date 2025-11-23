@@ -16,6 +16,7 @@
                 <a class="brand" href="{{ path('home') }}">Plant care</a>
                 {% if app.user %}
                     <nav class="main-nav">
+                        <a href="{{ path('plant_index') }}">Plants</a>
                         <a href="{{ path('room_index') }}">Rooms</a>
                         <a href="{{ path('species_index') }}">Species</a>
                     </nav>

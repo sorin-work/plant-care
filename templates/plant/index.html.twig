@@ -1,0 +1,28 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Plants · {{ parent() }}{% endblock %}
+
+{% block body %}
+    <div class="page-header">
+        <h1>Plants</h1>
+    </div>
+
+    {% if plants is empty %}
+        <p class="empty">No plants yet.</p>
+    {% else %}
+        <ul class="plant-grid">
+            {% for plant in plants %}
+                <li class="card plant-card">
+                    <h2>{{ plant.name }}</h2>
+                    {% if plant.species %}
+                        <p class="muted"><em>{{ plant.species.scientificName }}</em></p>
+                    {% endif %}
+                    <p class="tags">
+                        <span class="tag">{{ plant.room ? plant.room.name : 'No room' }}</span>
+                        <span class="tag">{{ plant.light.label }}</span>
+                    </p>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endblock %}

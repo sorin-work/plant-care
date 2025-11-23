@@ -4,6 +4,8 @@ namespace App\Tests\Support;
 
 use App\Entity\Household;
 use App\Entity\Membership;
+use App\Entity\Plant;
+use App\Entity\Room;
 use App\Entity\User;
 use App\Enum\HouseholdRole;
 use Doctrine\ORM\EntityManagerInterface;
@@ -49,5 +51,23 @@ trait Factory
         $this->em()->flush();
 
         return $membership;
+    }
+
+    protected function createRoom(Household $household, string $name = 'Living room'): Room
+    {
+        $room = new Room($household, $name);
+        $this->em()->persist($room);
+        $this->em()->flush();
+
+        return $room;
+    }
+
+    protected function createPlant(Household $household, string $name = 'Monty', ?Room $room = null): Plant
+    {
+        $plant = (new Plant($household))->setName($name)->setRoom($room);
+        $this->em()->persist($plant);
+        $this->em()->flush();
+
+        return $plant;
     }
 }
