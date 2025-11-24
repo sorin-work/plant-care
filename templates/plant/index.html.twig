@@ -14,7 +14,7 @@
         <ul class="plant-grid">
             {% for plant in plants %}
                 <li class="card plant-card">
-                    <h2><a href="{{ path('plant_edit', {id: plant.id}) }}">{{ plant.name }}</a></h2>
+                    <h2><a href="{{ path('plant_show', {id: plant.id}) }}">{{ plant.name }}</a></h2>
                     {% if plant.species %}
                         <p class="muted"><em>{{ plant.species.scientificName }}</em></p>
                     {% endif %}

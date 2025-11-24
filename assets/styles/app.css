@@ -386,3 +386,7 @@ form.inline {
         grid-template-columns: 1fr;
     }
 }
+
+.prewrap {
+    white-space: pre-wrap;
+}

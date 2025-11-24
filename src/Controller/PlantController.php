@@ -42,12 +42,20 @@ final class PlantController extends AbstractController
             $this->em->flush();
             $this->addFlash('success', \sprintf('%s has been added.', $plant->getName()));
 
-            return $this->redirectToRoute('plant_index');
+            return $this->redirectToRoute('plant_show', ['id' => $plant->getId()]);
         }
 
         return $this->render('plant/new.html.twig', [
             'form' => $form,
         ], new Response(status: $form->isSubmitted() ? 422 : 200));
+    }
+
+    #[Route('/{id}', name: 'plant_show', methods: ['GET'], requirements: ['id' => '\d+'])]
+    public function show(Plant $plant): Response
+    {
+        $this->assertInCurrentHousehold($plant);
+
+        return $this->render('plant/show.html.twig', ['plant' => $plant]);
     }
 
     #[Route('/{id}/edit', name: 'plant_edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
@@ -61,7 +69,7 @@ final class PlantController extends AbstractController
             $this->em->flush();
             $this->addFlash('success', 'Changes saved.');
 
-            return $this->redirectToRoute('plant_index');
+            return $this->redirectToRoute('plant_show', ['id' => $plant->getId()]);
         }
 
         return $this->render('plant/edit.html.twig', [

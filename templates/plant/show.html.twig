@@ -1,0 +1,37 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ plant.name }} · {{ parent() }}{% endblock %}
+
+{% block body %}
+    <p><a href="{{ path('plant_index') }}">&larr; All plants</a></p>
+    <div class="page-header">
+        <div>
+            <h1>{{ plant.name }}</h1>
+            {% if plant.species %}
+                <p class="muted"><a href="{{ path('species_show', {id: plant.species.id}) }}">{{ plant.species.commonName }}</a> · <em>{{ plant.species.scientificName }}</em></p>
+            {% endif %}
+        </div>
+        <a href="{{ path('plant_edit', {id: plant.id}) }}" class="btn btn-secondary">Edit</a>
+    </div>
+
+    <div class="grid-2">
+        <section class="card">
+            <h2>Notes</h2>
+            {% if plant.notes %}
+                <p class="prewrap">{{ plant.notes }}</p>
+            {% else %}
+                <p class="muted">No notes yet.</p>
+            {% endif %}
+        </section>
+        <aside class="card">
+            <dl class="facts">
+                <dt>Room</dt><dd>{{ plant.room ? plant.room.name : '—' }}</dd>
+                <dt>Light</dt><dd>{{ plant.light.label }}</dd>
+                <dt>Since</dt><dd>{{ plant.acquiredOn ? plant.acquiredOn|date('j M Y') : '—' }}</dd>
+                {% if plant.species and plant.species.toxicToPets %}
+                    <dt>Pets</dt><dd class="danger">Toxic to cats and dogs</dd>
+                {% endif %}
+            </dl>
+        </aside>
+    </div>
+{% endblock %}

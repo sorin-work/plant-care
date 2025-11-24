@@ -61,7 +61,10 @@ final class PlantControllerTest extends WebTestCase
             'plant[light]' => 'low',
             'plant[acquiredOn]' => '2025-03-01',
         ]);
-        self::assertResponseRedirects('/plants');
+        self::assertResponseRedirects();
+        $client->followRedirect();
+        self::assertSelectorTextContains('h1', 'Sansa');
+        self::assertSelectorTextContains('.facts', 'Bedroom');
 
         $plants = static::getContainer()->get(PlantRepository::class)->findActive($household);
         self::assertCount(1, $plants);
@@ -105,7 +108,7 @@ final class PlantControllerTest extends WebTestCase
 
         $client->request('GET', '/plants/'.$plant->getId().'/edit');
         $client->submitForm('Save', ['plant[name]' => 'Monty II', 'plant[light]' => 'direct']);
-        self::assertResponseRedirects('/plants');
+        self::assertResponseRedirects('/plants/'.$plant->getId());
 
         $reloaded = static::getContainer()->get(PlantRepository::class)->find($plant->getId());
         self::assertSame('Monty II', $reloaded?->getName());
@@ -121,7 +124,9 @@ final class PlantControllerTest extends WebTestCase
         $client->loginUser($user);
 
         $client->request('GET', '/plants/'.$plant->getId().'/edit');
+        self::assertResponseStatusCodeSame(404);
 
+        $client->request('GET', '/plants/'.$plant->getId());
         self::assertResponseStatusCodeSame(404);
     }
 }
