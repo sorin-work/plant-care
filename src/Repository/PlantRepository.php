@@ -33,4 +33,21 @@ class PlantRepository extends ServiceEntityRepository
 
         return $result;
     }
+
+    /**
+     * @return list<Plant>
+     */
+    public function findArchived(Household $household): array
+    {
+        /** @var list<Plant> $result */
+        $result = $this->createQueryBuilder('p')
+            ->where('p.household = :household')
+            ->andWhere('p.archivedAt IS NOT NULL')
+            ->setParameter('household', $household)
+            ->orderBy('p.archivedAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+
+        return $result;
+    }
 }

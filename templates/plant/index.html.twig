@@ -5,7 +5,10 @@
 {% block body %}
     <div class="page-header">
         <h1>Plants</h1>
-        <a href="{{ path('plant_new') }}" class="btn">Add a plant</a>
+        <div class="actions">
+            <a href="{{ path('plant_archived') }}">Archive</a>
+            <a href="{{ path('plant_new') }}" class="btn">Add a plant</a>
+        </div>
     </div>
 
     {% if plants is empty %}

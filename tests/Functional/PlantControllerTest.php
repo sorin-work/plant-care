@@ -129,4 +129,43 @@ final class PlantControllerTest extends WebTestCase
         $client->request('GET', '/plants/'.$plant->getId());
         self::assertResponseStatusCodeSame(404);
     }
+
+    public function testArchiveAndRestorePlant(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $household = $this->createHousehold($user);
+        $plant = $this->createPlant($household, 'Fern');
+        $client->loginUser($user);
+
+        $client->request('GET', '/plants/'.$plant->getId());
+        $client->submitForm('Archive');
+        self::assertResponseRedirects('/plants');
+        $client->followRedirect();
+        self::assertSelectorTextContains('.empty', 'No plants yet');
+
+        $client->request('GET', '/plants/archived');
+        self::assertSelectorTextContains('.list', 'Fern');
+
+        $client->request('GET', '/plants/'.$plant->getId());
+        $client->submitForm('Restore');
+        $client->followRedirect();
+        self::assertSelectorNotExists('.notice');
+
+        $repo = static::getContainer()->get(PlantRepository::class);
+        self::assertCount(1, $repo->findActive($household));
+        self::assertCount(0, $repo->findArchived($household));
+    }
+
+    public function testArchiveRequiresValidToken(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $plant = $this->createPlant($this->createHousehold($user), 'Fern');
+        $client->loginUser($user);
+
+        $client->request('POST', '/plants/'.$plant->getId().'/archive', ['_token' => 'forged']);
+
+        self::assertResponseStatusCodeSame(403);
+    }
 }

@@ -4,6 +4,9 @@
 
 {% block body %}
     <p><a href="{{ path('plant_index') }}">&larr; All plants</a></p>
+    {% if plant.archived %}
+        <p class="notice">Archived on {{ plant.archivedAt|date('j M Y') }}. Archived plants have no care tasks.</p>
+    {% endif %}
     <div class="page-header">
         <div>
             <h1>{{ plant.name }}</h1>
@@ -11,7 +14,20 @@
                 <p class="muted"><a href="{{ path('species_show', {id: plant.species.id}) }}">{{ plant.species.commonName }}</a> · <em>{{ plant.species.scientificName }}</em></p>
             {% endif %}
         </div>
-        <a href="{{ path('plant_edit', {id: plant.id}) }}" class="btn btn-secondary">Edit</a>
+        <div class="actions">
+            {% if plant.archived %}
+                <form method="post" action="{{ path('plant_restore', {id: plant.id}) }}" class="inline">
+                    <input type="hidden" name="_token" value="{{ csrf_token('restore-plant-' ~ plant.id) }}">
+                    <button type="submit" class="btn">Restore</button>
+                </form>
+            {% else %}
+                <a href="{{ path('plant_edit', {id: plant.id}) }}" class="btn btn-secondary">Edit</a>
+                <form method="post" action="{{ path('plant_archive', {id: plant.id}) }}" class="inline">
+                    <input type="hidden" name="_token" value="{{ csrf_token('archive-plant-' ~ plant.id) }}">
+                    <button type="submit" class="btn btn-secondary">Archive</button>
+                </form>
+            {% endif %}
+        </div>
     </div>
 
     <div class="grid-2">

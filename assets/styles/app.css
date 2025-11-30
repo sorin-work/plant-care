@@ -390,3 +390,10 @@ form.inline {
 .prewrap {
     white-space: pre-wrap;
 }
+
+.notice {
+    padding: .6rem 1rem;
+    border-radius: var(--radius);
+    background: #fef3e2;
+    color: var(--amber-600);
+}

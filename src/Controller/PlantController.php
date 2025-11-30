@@ -29,6 +29,14 @@ final class PlantController extends AbstractController
         ]);
     }
 
+    #[Route('/archived', name: 'plant_archived', methods: ['GET'])]
+    public function archived(PlantRepository $plants): Response
+    {
+        return $this->render('plant/archived.html.twig', [
+            'plants' => $plants->findArchived($this->current->get()),
+        ]);
+    }
+
     #[Route('/new', name: 'plant_new', methods: ['GET', 'POST'])]
     public function new(Request $request): Response
     {
@@ -76,6 +84,39 @@ final class PlantController extends AbstractController
             'plant' => $plant,
             'form' => $form,
         ], new Response(status: $form->isSubmitted() ? 422 : 200));
+    }
+
+    #[Route('/{id}/archive', name: 'plant_archive', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function archive(Plant $plant, Request $request): Response
+    {
+        $this->assertInCurrentHousehold($plant);
+        $this->assertCsrf('archive-plant-'.$plant->getId(), $request);
+
+        $plant->archive();
+        $this->em->flush();
+        $this->addFlash('success', \sprintf('%s was archived. You can restore it from the archive.', $plant->getName()));
+
+        return $this->redirectToRoute('plant_index');
+    }
+
+    #[Route('/{id}/restore', name: 'plant_restore', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function restore(Plant $plant, Request $request): Response
+    {
+        $this->assertInCurrentHousehold($plant);
+        $this->assertCsrf('restore-plant-'.$plant->getId(), $request);
+
+        $plant->restore();
+        $this->em->flush();
+        $this->addFlash('success', \sprintf('%s is back.', $plant->getName()));
+
+        return $this->redirectToRoute('plant_show', ['id' => $plant->getId()]);
+    }
+
+    private function assertCsrf(string $id, Request $request): void
+    {
+        if (!$this->isCsrfTokenValid($id, (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
     }
 
     private function assertInCurrentHousehold(Plant $plant): void
