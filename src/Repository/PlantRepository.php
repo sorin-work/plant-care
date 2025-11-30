@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Household;
 use App\Entity\Plant;
+use App\Entity\Room;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -20,16 +21,20 @@ class PlantRepository extends ServiceEntityRepository
     /**
      * @return list<Plant>
      */
-    public function findActive(Household $household): array
+    public function findActive(Household $household, ?Room $room = null): array
     {
-        /** @var list<Plant> $result */
-        $result = $this->createQueryBuilder('p')
+        $qb = $this->createQueryBuilder('p')
             ->where('p.household = :household')
             ->andWhere('p.archivedAt IS NULL')
             ->setParameter('household', $household)
-            ->orderBy('p.name', 'ASC')
-            ->getQuery()
-            ->getResult();
+            ->orderBy('p.name', 'ASC');
+
+        if (null !== $room) {
+            $qb->andWhere('p.room = :room')->setParameter('room', $room);
+        }
+
+        /** @var list<Plant> $result */
+        $result = $qb->getQuery()->getResult();
 
         return $result;
     }

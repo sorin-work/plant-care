@@ -168,4 +168,34 @@ final class PlantControllerTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(403);
     }
+
+    public function testFilterByRoom(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $household = $this->createHousehold($user);
+        $kitchen = $this->createRoom($household, 'Kitchen');
+        $bedroom = $this->createRoom($household, 'Bedroom');
+        $this->createPlant($household, 'Basil', $kitchen);
+        $this->createPlant($household, 'Sansa', $bedroom);
+        $client->loginUser($user);
+
+        $crawler = $client->request('GET', '/plants?room='.$kitchen->getId());
+
+        self::assertSame(['Basil'], $crawler->filter('.plant-card h2')->each(fn ($n) => $n->text()));
+        self::assertSelectorTextContains('.chip.is-active', 'Kitchen');
+    }
+
+    public function testUnknownRoomFilterShowsAllPlants(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $household = $this->createHousehold($user);
+        $this->createPlant($household, 'Basil');
+        $client->loginUser($user);
+
+        $crawler = $client->request('GET', '/plants?room=999999');
+
+        self::assertCount(1, $crawler->filter('.plant-card'));
+    }
 }

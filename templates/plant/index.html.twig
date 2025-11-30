@@ -11,7 +11,18 @@
         </div>
     </div>
 
-    {% if plants is empty %}
+    {% if rooms|length > 1 %}
+        <nav class="chips" aria-label="Filter by room">
+            <a href="{{ path('plant_index') }}" class="chip {{ selected_room is null ? 'is-active' }}">All rooms</a>
+            {% for room in rooms %}
+                <a href="{{ path('plant_index', {room: room.id}) }}" class="chip {{ selected_room and selected_room.id == room.id ? 'is-active' }}">{{ room.name }}</a>
+            {% endfor %}
+        </nav>
+    {% endif %}
+
+    {% if plants is empty and selected_room %}
+        <p class="empty">No plants in {{ selected_room.name }}.</p>
+    {% elseif plants is empty %}
         <p class="empty">No plants yet. <a href="{{ path('plant_new') }}">Add your first plant</a>.</p>
     {% else %}
         <ul class="plant-grid">

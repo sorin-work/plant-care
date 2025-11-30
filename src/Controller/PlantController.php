@@ -6,6 +6,7 @@ use App\Entity\Plant;
 use App\Form\PlantType;
 use App\Household\CurrentHousehold;
 use App\Repository\PlantRepository;
+use App\Repository\RoomRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,10 +23,22 @@ final class PlantController extends AbstractController
     }
 
     #[Route('', name: 'plant_index', methods: ['GET'])]
-    public function index(PlantRepository $plants): Response
+    public function index(Request $request, PlantRepository $plants, RoomRepository $rooms): Response
     {
+        $household = $this->current->get();
+        $allRooms = $rooms->findForHousehold($household);
+        $selected = null;
+        $roomId = $request->query->getInt('room');
+        foreach ($allRooms as $room) {
+            if ($room->getId() === $roomId) {
+                $selected = $room;
+            }
+        }
+
         return $this->render('plant/index.html.twig', [
-            'plants' => $plants->findActive($this->current->get()),
+            'plants' => $plants->findActive($household, $selected),
+            'rooms' => $allRooms,
+            'selected_room' => $selected,
         ]);
     }
 
