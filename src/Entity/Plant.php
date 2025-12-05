@@ -5,6 +5,8 @@ namespace App\Entity;
 use App\Enum\LightLevel;
 use App\Repository\PlantRepository;
 use DateTimeImmutable;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use InvalidArgumentException;
@@ -53,10 +55,15 @@ class Plant
     #[ORM\Column]
     private DateTimeImmutable $createdAt;
 
+    /** @var Collection<int, CareSchedule> */
+    #[ORM\OneToMany(targetEntity: CareSchedule::class, mappedBy: 'plant', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $schedules;
+
     public function __construct(Household $household)
     {
         $this->household = $household;
         $this->createdAt = new DateTimeImmutable();
+        $this->schedules = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -167,5 +174,29 @@ class Plant
     public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
+    }
+
+    /**
+     * @return Collection<int, CareSchedule>
+     */
+    public function getSchedules(): Collection
+    {
+        return $this->schedules;
+    }
+
+    public function addSchedule(CareSchedule $schedule): static
+    {
+        if (!$this->schedules->contains($schedule)) {
+            $this->schedules->add($schedule);
+        }
+
+        return $this;
+    }
+
+    public function removeSchedule(CareSchedule $schedule): static
+    {
+        $this->schedules->removeElement($schedule);
+
+        return $this;
     }
 }
