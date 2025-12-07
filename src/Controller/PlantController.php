@@ -2,11 +2,13 @@
 
 namespace App\Controller;
 
+use App\Care\ScheduleFactory;
 use App\Entity\Plant;
 use App\Form\PlantType;
 use App\Household\CurrentHousehold;
 use App\Repository\PlantRepository;
 use App\Repository\RoomRepository;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -51,7 +53,7 @@ final class PlantController extends AbstractController
     }
 
     #[Route('/new', name: 'plant_new', methods: ['GET', 'POST'])]
-    public function new(Request $request): Response
+    public function new(Request $request, ScheduleFactory $schedules): Response
     {
         $household = $this->current->get();
         $plant = new Plant($household);
@@ -59,6 +61,7 @@ final class PlantController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $schedules->createDefaults($plant, new DateTimeImmutable('today'));
             $this->em->persist($plant);
             $this->em->flush();
             $this->addFlash('success', \sprintf('%s has been added.', $plant->getName()));

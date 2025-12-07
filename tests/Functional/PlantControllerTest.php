@@ -71,6 +71,7 @@ final class PlantControllerTest extends WebTestCase
         self::assertSame('Sansa', $plants[0]->getName());
         self::assertSame('Bedroom', $plants[0]->getRoom()?->getName());
         self::assertSame('2025-03-01', $plants[0]->getAcquiredOn()?->format('Y-m-d'));
+        self::assertCount(2, $plants[0]->getSchedules(), 'snake plant has no fertilizer default here');
     }
 
     public function testPlantNeedsAName(): void
