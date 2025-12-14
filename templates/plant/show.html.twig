@@ -31,6 +31,29 @@
     </div>
 
     <div class="grid-2">
+        <div class="stack">
+        {% if not plant.archived %}
+            <section class="card">
+                <h2>Care</h2>
+                <ul class="list schedules">
+                    {% for schedule in plant.schedules %}
+                        <li>
+                            <span>
+                                <span aria-hidden="true">{{ schedule.type.icon }}</span>
+                                <strong>{{ schedule.type.label }}</strong>
+                                <span class="muted">every {{ schedule.intervalDays }} days · next {{ schedule.nextDueOn|date('j M') }}</span>
+                            </span>
+                            <form method="post" action="{{ path('task_done', {id: schedule.id}) }}" class="inline">
+                                <input type="hidden" name="_token" value="{{ csrf_token('task-' ~ schedule.id) }}">
+                                <button type="submit" class="btn btn-small">Done</button>
+                            </form>
+                        </li>
+                    {% else %}
+                        <li class="muted">No care schedules.</li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
         <section class="card">
             <h2>Notes</h2>
             {% if plant.notes %}
@@ -39,6 +62,22 @@
                 <p class="muted">No notes yet.</p>
             {% endif %}
         </section>
+        <section class="card">
+            <h2>Recent care</h2>
+            {% if events is empty %}
+                <p class="muted">Nothing logged yet.</p>
+            {% else %}
+                <ul class="list history">
+                    {% for event in events %}
+                        <li>
+                            <span>{{ event.type.icon }} {{ event.type.label }} · {{ event.action.value }}</span>
+                            <span class="muted">{{ event.happenedOn|date('j M Y') }}{{ event.user ? ' by ' ~ event.user.displayName }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </section>
+        </div>
         <aside class="card">
             <dl class="facts">
                 <dt>Room</dt><dd>{{ plant.room ? plant.room.name : '—' }}</dd>

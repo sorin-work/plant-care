@@ -6,6 +6,7 @@ use App\Care\ScheduleFactory;
 use App\Entity\Plant;
 use App\Form\PlantType;
 use App\Household\CurrentHousehold;
+use App\Repository\CareEventRepository;
 use App\Repository\PlantRepository;
 use App\Repository\RoomRepository;
 use DateTimeImmutable;
@@ -75,11 +76,14 @@ final class PlantController extends AbstractController
     }
 
     #[Route('/{id}', name: 'plant_show', methods: ['GET'], requirements: ['id' => '\d+'])]
-    public function show(Plant $plant): Response
+    public function show(Plant $plant, CareEventRepository $events): Response
     {
         $this->assertInCurrentHousehold($plant);
 
-        return $this->render('plant/show.html.twig', ['plant' => $plant]);
+        return $this->render('plant/show.html.twig', [
+            'plant' => $plant,
+            'events' => $events->findRecentForPlant($plant),
+        ]);
     }
 
     #[Route('/{id}/edit', name: 'plant_edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]

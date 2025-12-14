@@ -419,3 +419,13 @@ form.inline {
     background: var(--green-600);
     color: #fff;
 }
+
+.stack {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.btn-small {
+    padding: .2rem .65rem;
+    font-size: .875rem;
+}
