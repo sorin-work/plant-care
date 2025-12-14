@@ -1,0 +1,10 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ schedule.type.label }} {{ plant.name }} · {{ parent() }}{% endblock %}
+
+{% block body %}
+    <section class="card narrow">
+        <h1>{{ schedule.type.icon }} {{ schedule.type.label }} {{ plant.name }}</h1>
+        {{ include('schedule/_form.html.twig') }}
+    </section>
+{% endblock %}

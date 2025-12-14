@@ -43,15 +43,24 @@
                                 <strong>{{ schedule.type.label }}</strong>
                                 <span class="muted">every {{ schedule.intervalDays }} days · next {{ schedule.nextDueOn|date('j M') }}</span>
                             </span>
-                            <form method="post" action="{{ path('task_done', {id: schedule.id}) }}" class="inline">
-                                <input type="hidden" name="_token" value="{{ csrf_token('task-' ~ schedule.id) }}">
-                                <button type="submit" class="btn btn-small">Done</button>
-                            </form>
+                            <span class="actions">
+                                <a href="{{ path('schedule_edit', {id: schedule.id}) }}">Edit</a>
+                                <form method="post" action="{{ path('task_done', {id: schedule.id}) }}" class="inline">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('task-' ~ schedule.id) }}">
+                                    <button type="submit" class="btn btn-small">Done</button>
+                                </form>
+                            </span>
                         </li>
                     {% else %}
                         <li class="muted">No care schedules.</li>
                     {% endfor %}
                 </ul>
+                {% set used = plant.schedules|map(s => s.type.value) %}
+                {% for type in enum_cases('App\\Enum\\CareTaskType') %}
+                    {% if type.value not in used %}
+                        <a href="{{ path('schedule_new', {id: plant.id, type: type.value}) }}" class="btn btn-secondary btn-small">+ {{ type.label }} reminders</a>
+                    {% endif %}
+                {% endfor %}
             </section>
         {% endif %}
         <section class="card">

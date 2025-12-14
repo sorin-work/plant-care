@@ -1,0 +1,7 @@
+{{ form_start(form) }}
+    {{ form_row(form.intervalDays) }}
+    {{ form_row(form.nextDueOn) }}
+    <div class="checkbox">{{ form_row(form.seasonal) }}</div>
+    <button type="submit" class="btn">Save</button>
+    <a href="{{ path('plant_show', {id: plant.id}) }}" class="btn btn-secondary">Cancel</a>
+{{ form_end(form) }}

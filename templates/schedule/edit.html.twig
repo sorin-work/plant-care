@@ -1,0 +1,14 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ schedule.type.label }} {{ plant.name }} · {{ parent() }}{% endblock %}
+
+{% block body %}
+    <section class="card narrow">
+        <h1>{{ schedule.type.icon }} {{ schedule.type.label }} {{ plant.name }}</h1>
+        {{ include('schedule/_form.html.twig') }}
+        <form method="post" action="{{ path('schedule_delete', {id: schedule.id}) }}" class="danger-zone" onsubmit="return confirm('Stop {{ schedule.type.label|lower }} reminders for this plant?')">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete-schedule-' ~ schedule.id) }}">
+            <button type="submit" class="link danger">Turn off these reminders</button>
+        </form>
+    </section>
+{% endblock %}
