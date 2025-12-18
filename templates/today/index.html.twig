@@ -1,0 +1,34 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Today · {{ parent() }}{% endblock %}
+
+{% block body %}
+    <div class="page-header">
+        <div>
+            <h1>Today</h1>
+            <p class="muted">{{ today|date('l, j F') }}</p>
+        </div>
+    </div>
+
+    {% if tasks is empty %}
+        <p class="empty">All caught up. Nothing needs doing today. 🌿</p>
+    {% else %}
+        <ul class="list card tasks">
+            {% for task in tasks %}
+                {% set schedule = task.schedule %}
+                <li>
+                    <span>
+                        <span aria-hidden="true">{{ schedule.type.icon }}</span>
+                        <strong>{{ schedule.type.label }}</strong>
+                        <a href="{{ path('plant_show', {id: task.plant.id}) }}">{{ task.plant.name }}</a>
+                    </span>
+                    <form method="post" action="{{ path('task_done', {id: schedule.id}) }}" class="inline">
+                        <input type="hidden" name="_token" value="{{ csrf_token('task-' ~ schedule.id) }}">
+                        <input type="hidden" name="_back" value="{{ path('home') }}">
+                        <button type="submit" class="btn btn-small">Done</button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endblock %}

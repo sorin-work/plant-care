@@ -22,7 +22,7 @@ final class LoginTest extends WebTestCase
         self::assertResponseRedirects('http://localhost/');
 
         $client->followRedirect();
-        self::assertSelectorTextContains('h1', 'Hello, Ion');
+        self::assertSelectorTextContains('h1', 'Today');
 
         $client->request('GET', '/logout');
         $client->request('GET', '/');

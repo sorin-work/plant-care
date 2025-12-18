@@ -26,7 +26,7 @@ final class RegistrationTest extends WebTestCase
 
         self::assertResponseRedirects('/');
         $client->followRedirect();
-        self::assertSelectorTextContains('h1', 'Hello, Ana');
+        self::assertSelectorTextContains('h1', 'Today');
         $user = static::getContainer()->get(UserRepository::class)->findOneByEmail('ana@example.com');
         self::assertNotNull($user);
         self::assertSame('Ana', $user->getDisplayName());
