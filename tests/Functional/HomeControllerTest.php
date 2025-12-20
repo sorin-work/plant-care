@@ -72,4 +72,21 @@ final class HomeControllerTest extends WebTestCase
 
         self::assertSelectorTextContains('.empty', 'All caught up');
     }
+
+    public function testTasksAreGroupedByRoom(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $household = $this->createHousehold($user);
+        $kitchen = $this->createRoom($household, 'Kitchen');
+        $this->em()->persist(new CareSchedule($this->createPlant($household, 'Basil', $kitchen), CareTaskType::Water, 2, new DateTimeImmutable('today')));
+        $this->em()->persist(new CareSchedule($this->createPlant($household, 'Stray'), CareTaskType::Water, 7, new DateTimeImmutable('today')));
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $crawler = $client->request('GET', '/');
+
+        self::assertSame(['Kitchen (1)', 'No room (1)'], $crawler->filter('.room-group h2')->each(fn ($h) => $h->text()));
+        self::assertSelectorTextContains('.page-header', '2 tasks');
+    }
 }
