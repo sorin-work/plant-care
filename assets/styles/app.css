@@ -442,3 +442,19 @@ form.inline {
     text-transform: uppercase;
     letter-spacing: .04em;
 }
+
+.badge {
+    display: inline-block;
+    margin-left: .35rem;
+    padding: 0 .45rem;
+    border-radius: 6px;
+    background: var(--green-50);
+    color: var(--green-700);
+    font-size: .78rem;
+    font-weight: 600;
+}
+
+.badge-late {
+    background: #fde8e7;
+    color: var(--red-600);
+}

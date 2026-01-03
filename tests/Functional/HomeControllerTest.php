@@ -89,4 +89,20 @@ final class HomeControllerTest extends WebTestCase
         self::assertSame(['Kitchen (1)', 'No room (1)'], $crawler->filter('.room-group h2')->each(fn ($h) => $h->text()));
         self::assertSelectorTextContains('.page-header', '2 tasks');
     }
+
+    public function testOverdueBadge(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $household = $this->createHousehold($user);
+        $this->em()->persist(new CareSchedule($this->createPlant($household, 'One'), CareTaskType::Water, 7, new DateTimeImmutable('-1 day')));
+        $this->em()->persist(new CareSchedule($this->createPlant($household, 'Four'), CareTaskType::Fertilize, 30, new DateTimeImmutable('-4 days')));
+        $this->em()->persist(new CareSchedule($this->createPlant($household, 'Now'), CareTaskType::Water, 7, new DateTimeImmutable('today')));
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $crawler = $client->request('GET', '/');
+
+        self::assertSame(['4 days late', '1 day late', 'due today'], $crawler->filter('.tasks .badge')->each(fn ($b) => $b->text()));
+    }
 }

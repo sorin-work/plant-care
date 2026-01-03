@@ -24,6 +24,11 @@
                         <span aria-hidden="true">{{ schedule.type.icon }}</span>
                         <strong>{{ schedule.type.label }}</strong>
                         <a href="{{ path('plant_show', {id: task.plant.id}) }}">{{ task.plant.name }}</a>
+                        {% if task.overdue %}
+                            <span class="badge badge-late">{{ task.daysOverdue }} {{ task.daysOverdue == 1 ? 'day' : 'days' }} late</span>
+                        {% else %}
+                            <span class="badge">due today</span>
+                        {% endif %}
                     </span>
                     <form method="post" action="{{ path('task_done', {id: schedule.id}) }}" class="inline">
                         <input type="hidden" name="_token" value="{{ csrf_token('task-' ~ schedule.id) }}">

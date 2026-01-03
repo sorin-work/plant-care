@@ -23,7 +23,7 @@ final class DueTaskFinder
         $today = $today->setTime(0, 0);
 
         return array_map(
-            fn (CareSchedule $s): DueTask => new DueTask($s, (int) $s->getNextDueOn()->diff($today)->format('%r%a')),
+            fn (CareSchedule $s): DueTask => new DueTask($s, (int) $s->getNextDueOn()->setTime(0, 0)->diff($today)->format('%r%a')),
             $this->schedules->findDue($household, $today),
         );
     }
