@@ -458,3 +458,42 @@ form.inline {
     background: #fde8e7;
     color: var(--red-600);
 }
+
+.menu {
+    position: relative;
+}
+
+.menu summary {
+    list-style: none;
+}
+
+.menu summary::-webkit-details-marker {
+    display: none;
+}
+
+.menu-items {
+    position: absolute;
+    right: 0;
+    z-index: 10;
+    display: grid;
+    min-width: 8rem;
+    margin-top: .25rem;
+    padding: .25rem 0;
+    background: #fff;
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+}
+
+.menu-items button {
+    padding: .4rem .9rem;
+    border: 0;
+    background: none;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.menu-items button:hover {
+    background: var(--green-50);
+}

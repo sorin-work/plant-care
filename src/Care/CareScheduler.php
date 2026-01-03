@@ -4,12 +4,15 @@ namespace App\Care;
 
 use App\Entity\CareSchedule;
 use DateTimeImmutable;
+use InvalidArgumentException;
 
 /**
  * Moves schedules forward when care is done.
  */
 final class CareScheduler
 {
+    public const MAX_SNOOZE_DAYS = 14;
+
     public function __construct(
         private readonly SeasonResolver $seasons,
         private readonly SeasonalIntervalCalculator $intervals,
@@ -40,5 +43,14 @@ final class CareScheduler
         $schedule->setLastDoneOn($day->setTime(0, 0));
         $schedule->setNextDueOn($this->nextDueAfter($schedule, $day));
         $schedule->setSnoozedUntil(null);
+    }
+
+    public function snooze(CareSchedule $schedule, int $days, DateTimeImmutable $today): void
+    {
+        if ($days < 1 || $days > self::MAX_SNOOZE_DAYS) {
+            throw new InvalidArgumentException(\sprintf('A task can be snoozed for 1 to %d days.', self::MAX_SNOOZE_DAYS));
+        }
+
+        $schedule->setSnoozedUntil($today->setTime(0, 0)->modify(\sprintf('+%d days', $days)));
     }
 }

@@ -73,4 +73,40 @@ final class CareTaskControllerTest extends WebTestCase
 
         self::assertResponseRedirects('/plants/'.$plant->getId());
     }
+
+    public function testSnoozeHidesTaskFromToday(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $plant = $this->createPlant($this->createHousehold($user), 'Monty');
+        $this->em()->persist(new CareSchedule($plant, CareTaskType::Water, 7, new DateTimeImmutable('today')));
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $crawler = $client->request('GET', '/');
+        $client->submit($crawler->selectButton('3 days')->form());
+        self::assertResponseRedirects('/');
+        $client->followRedirect();
+
+        self::assertSelectorTextContains('.flash', 'Snoozed Monty for 3 days.');
+        self::assertSelectorTextContains('.empty', 'All caught up');
+    }
+
+    public function testSnoozeWithInvalidDaysShowsError(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $plant = $this->createPlant($this->createHousehold($user), 'Monty');
+        $this->em()->persist(new CareSchedule($plant, CareTaskType::Water, 7, new DateTimeImmutable('today')));
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $crawler = $client->request('GET', '/');
+        $form = $crawler->selectButton('3 days')->form();
+        $client->request('POST', $form->getUri(), ['_token' => $form->get('_token')->getValue(), 'days' => '-5', '_back' => '/']);
+        $client->followRedirect();
+
+        self::assertSelectorTextContains('.flash-error', '1 to 14 days');
+        self::assertSelectorExists('.tasks');
+    }
 }

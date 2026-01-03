@@ -11,6 +11,7 @@ use App\Entity\Plant;
 use App\Enum\CareTaskType;
 use App\Enum\Hemisphere;
 use DateTimeImmutable;
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
 final class CareSchedulerTest extends TestCase
@@ -75,5 +76,28 @@ final class CareSchedulerTest extends TestCase
         $schedule = $this->schedule(CareTaskType::Fertilize, 30);
 
         self::assertSame('2026-06-27', $this->scheduler->nextDueAfter($schedule, new DateTimeImmutable('2026-05-28'))->format('Y-m-d'));
+    }
+
+    public function testSnoozeSetsDate(): void
+    {
+        $schedule = $this->schedule();
+        $this->scheduler->snooze($schedule, 3, new DateTimeImmutable('2026-04-10 09:00'));
+
+        self::assertSame('2026-04-13', $schedule->getSnoozedUntil()?->format('Y-m-d'));
+        self::assertSame('2026-04-01', $schedule->getNextDueOn()->format('Y-m-d'), 'snoozing keeps the due date');
+    }
+
+    public function testSnoozeRejectsOutOfRangeDays(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        $this->scheduler->snooze($this->schedule(), 0, new DateTimeImmutable('2026-04-10'));
+    }
+
+    public function testSnoozeRejectsTooLongSnooze(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        $this->scheduler->snooze($this->schedule(), CareScheduler::MAX_SNOOZE_DAYS + 1, new DateTimeImmutable('2026-04-10'));
     }
 }

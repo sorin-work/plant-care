@@ -7,6 +7,7 @@ use App\Entity\CareSchedule;
 use App\Entity\User;
 use App\Household\CurrentHousehold;
 use DateTimeImmutable;
+use InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -28,6 +29,25 @@ final class CareTaskController extends AbstractController
         $this->assertAllowed($schedule, $request);
         $this->tasks->markDone($schedule, $user, new DateTimeImmutable('today'));
         $this->addFlash('success', \sprintf('%s: %s done.', $schedule->getPlant()->getName(), mb_strtolower($schedule->getType()->label())));
+
+        return $this->redirectBack($request, $schedule);
+    }
+
+    #[Route('/{id}/snooze', name: 'task_snooze', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function snooze(CareSchedule $schedule, Request $request, #[CurrentUser] User $user): Response
+    {
+        $this->assertAllowed($schedule, $request);
+        $days = $request->request->getInt('days', 1);
+
+        try {
+            $this->tasks->snooze($schedule, $user, $days, new DateTimeImmutable('today'));
+        } catch (InvalidArgumentException $e) {
+            $this->addFlash('error', $e->getMessage());
+
+            return $this->redirectBack($request, $schedule);
+        }
+
+        $this->addFlash('success', \sprintf('Snoozed %s for %d %s.', $schedule->getPlant()->getName(), $days, 1 === $days ? 'day' : 'days'));
 
         return $this->redirectBack($request, $schedule);
     }
