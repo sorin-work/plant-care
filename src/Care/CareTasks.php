@@ -27,6 +27,13 @@ final class CareTasks
         return $this->log($schedule, CareAction::Done, $user, $day);
     }
 
+    public function skip(CareSchedule $schedule, ?User $user, DateTimeImmutable $today): CareEvent
+    {
+        $this->scheduler->skip($schedule, $today);
+
+        return $this->log($schedule, CareAction::Skipped, $user, $today);
+    }
+
     public function snooze(CareSchedule $schedule, ?User $user, int $days, DateTimeImmutable $today): CareEvent
     {
         $this->scheduler->snooze($schedule, $days, $today);

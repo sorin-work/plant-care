@@ -100,4 +100,15 @@ final class CareSchedulerTest extends TestCase
 
         $this->scheduler->snooze($this->schedule(), CareScheduler::MAX_SNOOZE_DAYS + 1, new DateTimeImmutable('2026-04-10'));
     }
+
+    public function testSkipPlansNextOccurrenceWithoutMarkingDone(): void
+    {
+        $schedule = $this->schedule()->setLastDoneOn(new DateTimeImmutable('2026-03-20'));
+        $schedule->setSnoozedUntil(new DateTimeImmutable('2026-04-11'));
+        $this->scheduler->skip($schedule, new DateTimeImmutable('2026-04-10'));
+
+        self::assertSame('2026-04-20', $schedule->getNextDueOn()->format('Y-m-d'));
+        self::assertSame('2026-03-20', $schedule->getLastDoneOn()?->format('Y-m-d'));
+        self::assertNull($schedule->getSnoozedUntil());
+    }
 }

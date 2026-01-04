@@ -497,3 +497,7 @@ form.inline {
 .menu-items button:hover {
     background: var(--green-50);
 }
+
+.menu-items .menu-separator {
+    border-top: 1px solid var(--gray-200);
+}

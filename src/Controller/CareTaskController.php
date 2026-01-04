@@ -33,6 +33,16 @@ final class CareTaskController extends AbstractController
         return $this->redirectBack($request, $schedule);
     }
 
+    #[Route('/{id}/skip', name: 'task_skip', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function skip(CareSchedule $schedule, Request $request, #[CurrentUser] User $user): Response
+    {
+        $this->assertAllowed($schedule, $request);
+        $this->tasks->skip($schedule, $user, new DateTimeImmutable('today'));
+        $this->addFlash('success', \sprintf('Skipped %s for %s this time.', mb_strtolower($schedule->getType()->label()), $schedule->getPlant()->getName()));
+
+        return $this->redirectBack($request, $schedule);
+    }
+
     #[Route('/{id}/snooze', name: 'task_snooze', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function snooze(CareSchedule $schedule, Request $request, #[CurrentUser] User $user): Response
     {

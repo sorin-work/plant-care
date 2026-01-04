@@ -109,4 +109,27 @@ final class CareTaskControllerTest extends WebTestCase
         self::assertSelectorTextContains('.flash-error', '1 to 14 days');
         self::assertSelectorExists('.tasks');
     }
+
+    public function testSkipLogsEventAndPlansNextOccurrence(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $plant = $this->createPlant($this->createHousehold($user), 'Monty');
+        $schedule = (new CareSchedule($plant, CareTaskType::Fertilize, 30, new DateTimeImmutable('-2 days')))->setSeasonal(false);
+        $this->em()->persist($schedule);
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $crawler = $client->request('GET', '/');
+        $client->submit($crawler->selectButton('Skip this time')->form());
+        $client->followRedirect();
+
+        self::assertSelectorTextContains('.flash', 'Skipped fertilize for Monty this time.');
+        $reloaded = $this->em()->find(CareSchedule::class, $schedule->getId());
+        self::assertSame((new DateTimeImmutable('today +30 days'))->format('Y-m-d'), $reloaded?->getNextDueOn()->format('Y-m-d'));
+        self::assertNull($reloaded->getLastDoneOn());
+
+        $events = static::getContainer()->get(CareEventRepository::class)->findRecentForPlant($plant);
+        self::assertSame(CareAction::Skipped, $events[0]->getAction());
+    }
 }

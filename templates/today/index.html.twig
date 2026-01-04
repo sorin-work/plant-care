@@ -32,13 +32,14 @@
                     </span>
                     <span class="actions">
                         <details class="menu">
-                            <summary class="btn btn-secondary btn-small">Snooze</summary>
+                            <summary class="btn btn-secondary btn-small">Later</summary>
                             <form method="post" action="{{ path('task_snooze', {id: schedule.id}) }}" class="menu-items">
                                 <input type="hidden" name="_token" value="{{ csrf_token('task-' ~ schedule.id) }}">
                                 <input type="hidden" name="_back" value="{{ path('home') }}">
                                 <button type="submit" name="days" value="1">1 day</button>
                                 <button type="submit" name="days" value="3">3 days</button>
                                 <button type="submit" name="days" value="7">1 week</button>
+                                <button type="submit" formaction="{{ path('task_skip', {id: schedule.id}) }}" class="menu-separator">Skip this time</button>
                             </form>
                         </details>
                         <form method="post" action="{{ path('task_done', {id: schedule.id}) }}" class="inline">

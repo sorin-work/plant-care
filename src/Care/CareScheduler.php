@@ -53,4 +53,14 @@ final class CareScheduler
 
         $schedule->setSnoozedUntil($today->setTime(0, 0)->modify(\sprintf('+%d days', $days)));
     }
+
+    /**
+     * Skip this occurrence: the task is planned again one interval from today
+     * without counting as done.
+     */
+    public function skip(CareSchedule $schedule, DateTimeImmutable $today): void
+    {
+        $schedule->setNextDueOn($this->nextDueAfter($schedule, $today));
+        $schedule->setSnoozedUntil(null);
+    }
 }
