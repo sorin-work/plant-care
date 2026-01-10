@@ -83,4 +83,22 @@ final class CareScheduleControllerTest extends WebTestCase
 
         self::assertSelectorTextContains('.schedules', 'No care schedules');
     }
+
+    public function testPlantPageShowsSnoozeAndLastDone(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $plant = $this->createPlant($this->createHousehold($user));
+        $schedule = (new CareSchedule($plant, CareTaskType::Water, 7, new DateTimeImmutable('2026-01-10')))
+            ->setLastDoneOn(new DateTimeImmutable('2026-01-03'))
+            ->setSnoozedUntil(new DateTimeImmutable('2026-01-12'));
+        $this->em()->persist($schedule);
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $client->request('GET', '/plants/'.$plant->getId());
+
+        self::assertSelectorTextContains('.schedules', 'snoozed until 12 Jan');
+        self::assertSelectorTextContains('.schedules', 'last done 3 Jan');
+    }
 }

@@ -41,7 +41,16 @@
                             <span>
                                 <span aria-hidden="true">{{ schedule.type.icon }}</span>
                                 <strong>{{ schedule.type.label }}</strong>
-                                <span class="muted">every {{ schedule.intervalDays }} days · next {{ schedule.nextDueOn|date('j M') }}</span>
+                                <span class="muted">
+                                    every {{ schedule.intervalDays }} days{{ schedule.seasonal ? ', seasonal' }}
+                                    · next {{ schedule.nextDueOn|date('j M') }}
+                                    {% if schedule.snoozedUntil and schedule.snoozedUntil > schedule.nextDueOn %}
+                                        · snoozed until {{ schedule.snoozedUntil|date('j M') }}
+                                    {% endif %}
+                                    {% if schedule.lastDoneOn %}
+                                        · last done {{ schedule.lastDoneOn|date('j M') }}
+                                    {% endif %}
+                                </span>
                             </span>
                             <span class="actions">
                                 <a href="{{ path('schedule_edit', {id: schedule.id}) }}">Edit</a>
