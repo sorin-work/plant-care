@@ -81,6 +81,17 @@
             {% endif %}
         </section>
         <section class="card">
+            <h2>Journal</h2>
+            {% if not plant.archived %}
+                {{ include('journal/_form.html.twig') }}
+            {% endif %}
+            {% for entry in entries %}
+                {{ include('journal/_entry.html.twig') }}
+            {% else %}
+                <p class="muted">No journal entries yet.</p>
+            {% endfor %}
+        </section>
+        <section class="card">
             <h2>Recent care</h2>
             {% if events is empty %}
                 <p class="muted">Nothing logged yet.</p>

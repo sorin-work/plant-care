@@ -519,3 +519,22 @@ form.inline {
     margin-left: .5rem;
     font-size: .85rem;
 }
+
+.journal-form {
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.journal-entry {
+    padding: .75rem 0;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.journal-entry:last-child {
+    border-bottom: 0;
+}
+
+.journal-entry p {
+    margin: .25rem 0 0;
+}

@@ -1,0 +1,7 @@
+<article class="journal-entry">
+    <header>
+        <strong>{{ entry.writtenOn|date('j M Y') }}</strong>
+        {% if entry.author %}<span class="muted">· {{ entry.author.displayName }}</span>{% endif %}
+    </header>
+    <p>{{ entry.note|nl2br }}</p>
+</article>

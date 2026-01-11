@@ -3,10 +3,13 @@
 namespace App\Controller;
 
 use App\Care\ScheduleFactory;
+use App\Entity\JournalEntry;
 use App\Entity\Plant;
+use App\Form\JournalEntryType;
 use App\Form\PlantType;
 use App\Household\CurrentHousehold;
 use App\Repository\CareEventRepository;
+use App\Repository\JournalEntryRepository;
 use App\Repository\PlantRepository;
 use App\Repository\RoomRepository;
 use DateTimeImmutable;
@@ -76,13 +79,18 @@ final class PlantController extends AbstractController
     }
 
     #[Route('/{id}', name: 'plant_show', methods: ['GET'], requirements: ['id' => '\d+'])]
-    public function show(Plant $plant, CareEventRepository $events): Response
+    public function show(Plant $plant, CareEventRepository $events, JournalEntryRepository $journal): Response
     {
         $this->assertInCurrentHousehold($plant);
+        $form = $this->createForm(JournalEntryType::class, new JournalEntry($plant, null, new DateTimeImmutable('today')), [
+            'action' => $this->generateUrl('journal_new', ['id' => $plant->getId()]),
+        ]);
 
         return $this->render('plant/show.html.twig', [
             'plant' => $plant,
             'events' => $events->findRecentForPlant($plant),
+            'entries' => $journal->findLatestForPlant($plant),
+            'form' => $form,
         ]);
     }
 

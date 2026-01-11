@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Journal · {{ plant.name }} · {{ parent() }}{% endblock %}
+
+{% block body %}
+    <section class="card narrow">
+        <h1>New journal entry</h1>
+        <p class="muted">{{ plant.name }}</p>
+        {{ include('journal/_form.html.twig') }}
+    </section>
+{% endblock %}
