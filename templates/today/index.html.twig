@@ -3,55 +3,55 @@
 {% block title %}Today · {{ parent() }}{% endblock %}
 
 {% block body %}
+    <div data-controller="today" data-action="today:changed->today#update">
     <div class="page-header">
         <div>
             <h1>Today</h1>
-            <p class="muted">{{ today|date('l, j F') }}{{ count ? ' · ' ~ count ~ (count == 1 ? ' task' : ' tasks') }}</p>
+            <p class="muted">{{ today|date('l, j F') }}<span data-today-target="count">{{ count ? ' · ' ~ count ~ (count == 1 ? ' task' : ' tasks') }}</span></p>
         </div>
     </div>
 
-    {% if count == 0 %}
-        <p class="empty">All caught up. Nothing needs doing today. 🌿</p>
-    {% else %}
-        {% for group in groups %}
+    <p class="empty" data-today-target="empty" {{ count > 0 ? 'hidden' }}>All caught up. Nothing needs doing today. 🌿</p>
+    {% for group in groups %}
         <section class="room-group">
-        <h2>{{ group.label }} <span class="muted">({{ group.tasks|length }})</span></h2>
-        <ul class="list card tasks">
-            {% for task in group.tasks %}
-                {% set schedule = task.schedule %}
-                <li>
-                    <span>
-                        <span aria-hidden="true">{{ schedule.type.icon }}</span>
-                        <strong>{{ schedule.type.label }}</strong>
-                        <a href="{{ path('plant_show', {id: task.plant.id}) }}">{{ task.plant.name }}</a>
-                        {% if task.overdue %}
-                            <span class="badge badge-late">{{ task.daysOverdue }} {{ task.daysOverdue == 1 ? 'day' : 'days' }} late</span>
-                        {% else %}
-                            <span class="badge">due today</span>
-                        {% endif %}
-                    </span>
-                    <span class="actions">
-                        <details class="menu">
-                            <summary class="btn btn-secondary btn-small">Later</summary>
-                            <form method="post" action="{{ path('task_snooze', {id: schedule.id}) }}" class="menu-items">
+            <h2>{{ group.label }} <span class="muted">({{ group.tasks|length }})</span></h2>
+            <ul class="list card tasks">
+                {% for task in group.tasks %}
+                    {% set schedule = task.schedule %}
+                    <li data-controller="task">
+                        <span>
+                            <span aria-hidden="true">{{ schedule.type.icon }}</span>
+                            <strong>{{ schedule.type.label }}</strong>
+                            <a href="{{ path('plant_show', {id: task.plant.id}) }}">{{ task.plant.name }}</a>
+                            {% if task.overdue %}
+                                <span class="badge badge-late">{{ task.daysOverdue }} {{ task.daysOverdue == 1 ? 'day' : 'days' }} late</span>
+                            {% else %}
+                                <span class="badge">due today</span>
+                            {% endif %}
+                            <span class="task-status muted" data-task-target="status" aria-live="polite"></span>
+                        </span>
+                        <span class="actions">
+                            <details class="menu">
+                                <summary class="btn btn-secondary btn-small">Later</summary>
+                                <form method="post" action="{{ path('task_snooze', {id: schedule.id}) }}" class="menu-items" data-action="task#submit">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('task-' ~ schedule.id) }}">
+                                    <input type="hidden" name="_back" value="{{ path('home') }}">
+                                    <button type="submit" name="days" value="1">1 day</button>
+                                    <button type="submit" name="days" value="3">3 days</button>
+                                    <button type="submit" name="days" value="7">1 week</button>
+                                    <button type="submit" formaction="{{ path('task_skip', {id: schedule.id}) }}" class="menu-separator">Skip this time</button>
+                                </form>
+                            </details>
+                            <form method="post" action="{{ path('task_done', {id: schedule.id}) }}" class="inline" data-action="task#submit">
                                 <input type="hidden" name="_token" value="{{ csrf_token('task-' ~ schedule.id) }}">
                                 <input type="hidden" name="_back" value="{{ path('home') }}">
-                                <button type="submit" name="days" value="1">1 day</button>
-                                <button type="submit" name="days" value="3">3 days</button>
-                                <button type="submit" name="days" value="7">1 week</button>
-                                <button type="submit" formaction="{{ path('task_skip', {id: schedule.id}) }}" class="menu-separator">Skip this time</button>
+                                <button type="submit" class="btn btn-small">Done</button>
                             </form>
-                        </details>
-                        <form method="post" action="{{ path('task_done', {id: schedule.id}) }}" class="inline">
-                            <input type="hidden" name="_token" value="{{ csrf_token('task-' ~ schedule.id) }}">
-                            <input type="hidden" name="_back" value="{{ path('home') }}">
-                            <button type="submit" class="btn btn-small">Done</button>
-                        </form>
-                    </span>
-                </li>
-            {% endfor %}
-        </ul>
+                        </span>
+                    </li>
+                {% endfor %}
+            </ul>
         </section>
-        {% endfor %}
-    {% endif %}
+    {% endfor %}
+    </div>
 {% endblock %}

@@ -132,4 +132,41 @@ final class CareTaskControllerTest extends WebTestCase
         $events = static::getContainer()->get(CareEventRepository::class)->findRecentForPlant($plant);
         self::assertSame(CareAction::Skipped, $events[0]->getAction());
     }
+
+    public function testJsonResponseForBackgroundRequests(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $plant = $this->createPlant($this->createHousehold($user), 'Monty');
+        $this->em()->persist((new CareSchedule($plant, CareTaskType::Water, 7, new DateTimeImmutable('today')))->setSeasonal(false));
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $crawler = $client->request('GET', '/');
+        $form = $crawler->selectButton('Done')->form();
+        $client->request('POST', $form->getUri(), ['_token' => $form->get('_token')->getValue()], [], ['HTTP_ACCEPT' => 'application/json']);
+
+        self::assertResponseIsSuccessful();
+        $data = json_decode((string) $client->getResponse()->getContent(), true);
+        self::assertTrue($data['ok']);
+        self::assertSame('Monty: water done.', $data['message']);
+        self::assertSame((new DateTimeImmutable('today +7 days'))->format('Y-m-d'), $data['nextDueOn']);
+    }
+
+    public function testJsonErrorForInvalidSnooze(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $plant = $this->createPlant($this->createHousehold($user), 'Monty');
+        $this->em()->persist(new CareSchedule($plant, CareTaskType::Water, 7, new DateTimeImmutable('today')));
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $crawler = $client->request('GET', '/');
+        $form = $crawler->selectButton('1 day')->form();
+        $client->request('POST', $form->getUri(), ['_token' => $form->get('_token')->getValue(), 'days' => '30'], [], ['HTTP_ACCEPT' => 'application/json']);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertFalse(json_decode((string) $client->getResponse()->getContent(), true)['ok']);
+    }
 }

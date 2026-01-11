@@ -501,3 +501,21 @@ form.inline {
 .menu-items .menu-separator {
     border-top: 1px solid var(--gray-200);
 }
+
+.tasks li {
+    transition: opacity .4s, background-color .4s;
+}
+
+.tasks li.is-busy {
+    opacity: .6;
+}
+
+.tasks li.is-done {
+    opacity: .35;
+    background: var(--green-50);
+}
+
+.task-status {
+    margin-left: .5rem;
+    font-size: .85rem;
+}

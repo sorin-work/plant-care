@@ -9,11 +9,17 @@ use App\Household\CurrentHousehold;
 use DateTimeImmutable;
 use InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
+/**
+ * Done / skip / snooze actions. Plain form posts redirect back with a flash
+ * message; requests that accept JSON (the task Stimulus controller) get a
+ * small JSON body instead.
+ */
 #[Route('/tasks')]
 final class CareTaskController extends AbstractController
 {
@@ -28,9 +34,8 @@ final class CareTaskController extends AbstractController
     {
         $this->assertAllowed($schedule, $request);
         $this->tasks->markDone($schedule, $user, new DateTimeImmutable('today'));
-        $this->addFlash('success', \sprintf('%s: %s done.', $schedule->getPlant()->getName(), mb_strtolower($schedule->getType()->label())));
 
-        return $this->redirectBack($request, $schedule);
+        return $this->respond($request, $schedule, \sprintf('%s: %s done.', $schedule->getPlant()->getName(), mb_strtolower($schedule->getType()->label())));
     }
 
     #[Route('/{id}/skip', name: 'task_skip', methods: ['POST'], requirements: ['id' => '\d+'])]
@@ -38,9 +43,8 @@ final class CareTaskController extends AbstractController
     {
         $this->assertAllowed($schedule, $request);
         $this->tasks->skip($schedule, $user, new DateTimeImmutable('today'));
-        $this->addFlash('success', \sprintf('Skipped %s for %s this time.', mb_strtolower($schedule->getType()->label()), $schedule->getPlant()->getName()));
 
-        return $this->redirectBack($request, $schedule);
+        return $this->respond($request, $schedule, \sprintf('Skipped %s for %s this time.', mb_strtolower($schedule->getType()->label()), $schedule->getPlant()->getName()));
     }
 
     #[Route('/{id}/snooze', name: 'task_snooze', methods: ['POST'], requirements: ['id' => '\d+'])]
@@ -52,14 +56,10 @@ final class CareTaskController extends AbstractController
         try {
             $this->tasks->snooze($schedule, $user, $days, new DateTimeImmutable('today'));
         } catch (InvalidArgumentException $e) {
-            $this->addFlash('error', $e->getMessage());
-
-            return $this->redirectBack($request, $schedule);
+            return $this->respond($request, $schedule, $e->getMessage(), false);
         }
 
-        $this->addFlash('success', \sprintf('Snoozed %s for %d %s.', $schedule->getPlant()->getName(), $days, 1 === $days ? 'day' : 'days'));
-
-        return $this->redirectBack($request, $schedule);
+        return $this->respond($request, $schedule, \sprintf('Snoozed %s for %d %s.', $schedule->getPlant()->getName(), $days, 1 === $days ? 'day' : 'days'));
     }
 
     private function assertAllowed(CareSchedule $schedule, Request $request): void
@@ -72,8 +72,19 @@ final class CareTaskController extends AbstractController
         }
     }
 
-    private function redirectBack(Request $request, CareSchedule $schedule): Response
+    private function respond(Request $request, CareSchedule $schedule, string $message, bool $ok = true): Response
     {
+        if (\in_array('application/json', $request->getAcceptableContentTypes(), true)) {
+            return new JsonResponse([
+                'ok' => $ok,
+                'message' => $message,
+                'nextDueOn' => $schedule->getNextDueOn()->format('Y-m-d'),
+                'snoozedUntil' => $schedule->getSnoozedUntil()?->format('Y-m-d'),
+            ], $ok ? Response::HTTP_OK : Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $this->addFlash($ok ? 'success' : 'error', $message);
+
         $back = (string) $request->request->get('_back');
         if (str_starts_with($back, '/') && !str_starts_with($back, '//')) {
             return $this->redirect($back);
