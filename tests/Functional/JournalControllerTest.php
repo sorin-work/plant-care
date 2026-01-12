@@ -75,4 +75,18 @@ final class JournalControllerTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(404);
     }
+
+    public function testLinksInNotesAreClickable(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $plant = $this->createPlant($this->createHousehold($user));
+        $client->loginUser($user);
+
+        $client->request('GET', '/plants/'.$plant->getId());
+        $client->submitForm('Add to journal', ['journal_entry[note]' => 'Bought at https://plants.example/monstera']);
+        $client->followRedirect();
+
+        self::assertSelectorExists('.journal-entry a[href="https://plants.example/monstera"]');
+    }
 }
