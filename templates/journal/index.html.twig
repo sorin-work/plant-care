@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Journal · {{ plant.name }} · {{ parent() }}{% endblock %}
+
+{% block body %}
+    <p><a href="{{ path('plant_show', {id: plant.id}) }}">&larr; {{ plant.name }}</a></p>
+    <div class="page-header">
+        <h1>{{ plant.name }}’s journal</h1>
+        <a href="{{ path('journal_new', {id: plant.id}) }}" class="btn">New entry</a>
+    </div>
+
+    <section class="card">
+        {% for entry in page.items %}
+            {{ include('journal/_entry.html.twig') }}
+        {% else %}
+            <p class="muted">No journal entries yet.</p>
+        {% endfor %}
+    </section>
+
+    {% if page.pageCount > 1 %}
+        <nav class="pager" aria-label="Journal pages">
+            {% if page.hasPrevious %}
+                <a href="{{ path('journal_index', {id: plant.id, page: page.number - 1}) }}">&larr; Newer</a>
+            {% else %}
+                <span></span>
+            {% endif %}
+            <span class="muted">Page {{ page.number }} of {{ page.pageCount }}</span>
+            {% if page.hasNext %}
+                <a href="{{ path('journal_index', {id: plant.id, page: page.number + 1}) }}">Older &rarr;</a>
+            {% else %}
+                <span></span>
+            {% endif %}
+        </nav>
+    {% endif %}
+{% endblock %}

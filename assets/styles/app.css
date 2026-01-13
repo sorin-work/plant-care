@@ -538,3 +538,10 @@ form.inline {
 .journal-entry p {
     margin: .25rem 0 0;
 }
+
+.pager {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+}

@@ -7,6 +7,7 @@ use App\Entity\Plant;
 use App\Entity\User;
 use App\Form\JournalEntryType;
 use App\Household\CurrentHousehold;
+use App\Repository\JournalEntryRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -21,6 +22,19 @@ final class JournalController extends AbstractController
         private readonly CurrentHousehold $current,
         private readonly EntityManagerInterface $em,
     ) {
+    }
+
+    #[Route('/plants/{id}/journal', name: 'journal_index', methods: ['GET'], requirements: ['id' => '\d+'])]
+    public function index(Plant $plant, Request $request, JournalEntryRepository $entries): Response
+    {
+        if ($plant->getHousehold()->getId() !== $this->current->get()->getId()) {
+            throw $this->createNotFoundException();
+        }
+
+        return $this->render('journal/index.html.twig', [
+            'plant' => $plant,
+            'page' => $entries->pageForPlant($plant, $request->query->getInt('page', 1)),
+        ]);
     }
 
     #[Route('/plants/{id}/journal/new', name: 'journal_new', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]

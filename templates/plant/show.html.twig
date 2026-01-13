@@ -90,6 +90,9 @@
             {% else %}
                 <p class="muted">No journal entries yet.</p>
             {% endfor %}
+            {% if entries|length > 0 %}
+                <p><a href="{{ path('journal_index', {id: plant.id}) }}">Whole journal &rarr;</a></p>
+            {% endif %}
         </section>
         <section class="card">
             <h2>Recent care</h2>

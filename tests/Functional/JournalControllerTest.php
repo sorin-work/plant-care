@@ -89,4 +89,45 @@ final class JournalControllerTest extends WebTestCase
 
         self::assertSelectorExists('.journal-entry a[href="https://plants.example/monstera"]');
     }
+
+    private function addEntries(\App\Entity\Plant $plant, int $count): void
+    {
+        for ($i = 0; $i < $count; ++$i) {
+            $entry = (new JournalEntry($plant, null, new DateTimeImmutable('2026-01-01 +'.$i.' days')))->setNote('Entry '.($i + 1));
+            $this->em()->persist($entry);
+        }
+        $this->em()->flush();
+    }
+
+    public function testJournalPageShowsNewestFirst(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $plant = $this->createPlant($this->createHousehold($user));
+        $this->addEntries($plant, 3);
+        $client->loginUser($user);
+
+        $crawler = $client->request('GET', '/plants/'.$plant->getId().'/journal');
+
+        self::assertSame(['Entry 3', 'Entry 2', 'Entry 1'], $crawler->filter('.journal-entry p')->each(fn ($p) => $p->text()));
+        self::assertSelectorNotExists('.pager');
+    }
+
+    public function testJournalIsPaginated(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $plant = $this->createPlant($this->createHousehold($user));
+        $this->addEntries($plant, 20);
+        $client->loginUser($user);
+
+        $crawler = $client->request('GET', '/plants/'.$plant->getId().'/journal');
+        self::assertCount(10, $crawler->filter('.journal-entry'));
+        self::assertSelectorTextContains('.pager', 'Page 1 of 2');
+
+        $crawler = $client->clickLink('Older →');
+        self::assertCount(10, $crawler->filter('.journal-entry'));
+        self::assertSame('Entry 1', $crawler->filter('.journal-entry p')->last()->text());
+        self::assertSelectorTextContains('.pager', 'Newer');
+    }
 }
