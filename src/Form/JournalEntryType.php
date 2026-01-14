@@ -5,6 +5,7 @@ namespace App\Form;
 use App\Entity\JournalEntry;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -26,6 +27,12 @@ final class JournalEntryType extends AbstractType
                 'label' => 'How is it doing?',
                 'empty_data' => '',
                 'attr' => ['rows' => 3, 'placeholder' => 'New leaf unfurling, moved closer to the window…'],
+            ])
+            ->add('photoFile', FileType::class, [
+                'label' => 'Photo',
+                'mapped' => false,
+                'required' => false,
+                'attr' => ['accept' => 'image/jpeg,image/png,image/webp'],
             ]);
     }
 

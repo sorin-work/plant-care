@@ -545,3 +545,12 @@ form.inline {
     align-items: center;
     margin-top: 1rem;
 }
+
+.journal-photo {
+    display: block;
+    max-width: 100%;
+    max-height: 320px;
+    margin-top: .5rem;
+    border-radius: 8px;
+    object-fit: cover;
+}

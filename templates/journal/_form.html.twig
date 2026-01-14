@@ -1,5 +1,8 @@
 {{ form_start(form, {attr: {class: 'journal-form'}}) }}
     {{ form_row(form.note) }}
-    {{ form_row(form.writtenOn) }}
+    <div class="grid-fields">
+        {{ form_row(form.writtenOn) }}
+        {{ form_row(form.photoFile) }}
+    </div>
     <button type="submit" class="btn">Add to journal</button>
 {{ form_end(form) }}

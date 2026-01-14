@@ -4,4 +4,9 @@
         {% if entry.author %}<span class="muted">· {{ entry.author.displayName }}</span>{% endif %}
     </header>
     <p>{{ entry.note|autolink|nl2br }}</p>
+    {% if entry.photo %}
+        <a href="{{ path('photo_show', {name: entry.photo}) }}" target="_blank">
+            <img src="{{ path('photo_show', {name: entry.photo}) }}" alt="Photo of {{ entry.plant.name }} on {{ entry.writtenOn|date('j M Y') }}" class="journal-photo" loading="lazy">
+        </a>
+    {% endif %}
 </article>
