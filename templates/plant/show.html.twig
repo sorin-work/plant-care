@@ -111,6 +111,9 @@
         </section>
         </div>
         <aside class="card">
+            {% if plant.coverPhoto %}
+                <img src="{{ path('photo_show', {name: plant.coverPhoto}) }}" alt="{{ plant.name }}" class="plant-cover plant-cover-large">
+            {% endif %}
             <dl class="facts">
                 <dt>Room</dt><dd>{{ plant.room ? plant.room.name : '—' }}</dd>
                 <dt>Light</dt><dd>{{ plant.light.label }}</dd>

@@ -8,6 +8,8 @@ use App\Entity\Plant;
 use App\Form\JournalEntryType;
 use App\Form\PlantType;
 use App\Household\CurrentHousehold;
+use App\Photo\InvalidPhotoException;
+use App\Photo\PhotoStorage;
 use App\Repository\CareEventRepository;
 use App\Repository\JournalEntryRepository;
 use App\Repository\PlantRepository;
@@ -15,6 +17,9 @@ use App\Repository\RoomRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormError;
+use Symfony\Component\Form\FormInterface;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -57,14 +62,14 @@ final class PlantController extends AbstractController
     }
 
     #[Route('/new', name: 'plant_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, ScheduleFactory $schedules): Response
+    public function new(Request $request, ScheduleFactory $schedules, PhotoStorage $photos): Response
     {
         $household = $this->current->get();
         $plant = new Plant($household);
         $form = $this->createForm(PlantType::class, $plant, ['household' => $household]);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        if ($form->isSubmitted() && $form->isValid() && $this->handleCover($form, $plant, $photos)) {
             $schedules->createDefaults($plant, new DateTimeImmutable('today'));
             $this->em->persist($plant);
             $this->em->flush();
@@ -95,13 +100,13 @@ final class PlantController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'plant_edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
-    public function edit(Plant $plant, Request $request): Response
+    public function edit(Plant $plant, Request $request, PhotoStorage $photos): Response
     {
         $this->assertInCurrentHousehold($plant);
         $form = $this->createForm(PlantType::class, $plant, ['household' => $plant->getHousehold()]);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        if ($form->isSubmitted() && $form->isValid() && $this->handleCover($form, $plant, $photos)) {
             $this->em->flush();
             $this->addFlash('success', 'Changes saved.');
 
@@ -138,6 +143,31 @@ final class PlantController extends AbstractController
         $this->addFlash('success', \sprintf('%s is back.', $plant->getName()));
 
         return $this->redirectToRoute('plant_show', ['id' => $plant->getId()]);
+    }
+
+    /**
+     * @param FormInterface<Plant> $form
+     */
+    private function handleCover(FormInterface $form, Plant $plant, PhotoStorage $photos): bool
+    {
+        $upload = $form->get('coverFile')->getData();
+        if (!$upload instanceof UploadedFile) {
+            return true;
+        }
+
+        try {
+            $previous = $plant->getCoverPhoto();
+            $plant->setCoverPhoto($photos->store($upload));
+            if (null !== $previous) {
+                $photos->delete($previous);
+            }
+        } catch (InvalidPhotoException $e) {
+            $form->get('coverFile')->addError(new FormError($e->getMessage()));
+
+            return false;
+        }
+
+        return true;
     }
 
     private function assertCsrf(string $id, Request $request): void

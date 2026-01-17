@@ -49,6 +49,9 @@ class Plant
     #[Assert\Length(max: 5000)]
     private ?string $notes = null;
 
+    #[ORM\Column(length: 64, nullable: true)]
+    private ?string $coverPhoto = null;
+
     #[ORM\Column(nullable: true)]
     private ?DateTimeImmutable $archivedAt = null;
 
@@ -196,6 +199,18 @@ class Plant
     public function removeSchedule(CareSchedule $schedule): static
     {
         $this->schedules->removeElement($schedule);
+
+        return $this;
+    }
+
+    public function getCoverPhoto(): ?string
+    {
+        return $this->coverPhoto;
+    }
+
+    public function setCoverPhoto(?string $coverPhoto): static
+    {
+        $this->coverPhoto = $coverPhoto;
 
         return $this;
     }

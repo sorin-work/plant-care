@@ -6,6 +6,7 @@ use App\Entity\User;
 use App\Photo\PhotoStorage;
 use App\Repository\JournalEntryRepository;
 use App\Repository\MembershipRepository;
+use App\Repository\PlantRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
@@ -23,11 +24,12 @@ final class PhotoController extends AbstractController
         string $name,
         PhotoStorage $storage,
         JournalEntryRepository $entries,
+        PlantRepository $plants,
         MembershipRepository $memberships,
         #[CurrentUser] User $user,
     ): Response {
-        $entry = $entries->findOneBy(['photo' => $name]);
-        $household = $entry?->getPlant()->getHousehold();
+        $plant = $entries->findOneBy(['photo' => $name])?->getPlant() ?? $plants->findOneBy(['coverPhoto' => $name]);
+        $household = $plant?->getHousehold();
 
         if (null === $household || null === $memberships->findOneFor($household, $user) || !$storage->exists($name)) {
             throw $this->createNotFoundException();

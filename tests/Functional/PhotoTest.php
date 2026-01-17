@@ -110,4 +110,23 @@ final class PhotoTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(404);
     }
+
+    public function testUploadCoverPhotoWhenEditingPlant(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $plant = $this->createPlant($this->createHousehold($user), 'Monty');
+        $client->loginUser($user);
+
+        $crawler = $client->request('GET', '/plants/'.$plant->getId().'/edit');
+        $form = $crawler->selectButton('Save')->form();
+        $client->request('POST', $form->getUri(), $form->getPhpValues(), ['plant' => ['coverFile' => $this->leaf()]]);
+        $client->followRedirect();
+        self::assertSelectorExists('.plant-cover-large');
+
+        $crawler = $client->request('GET', '/plants');
+        $src = (string) $crawler->filter('img.plant-cover')->attr('src');
+        $client->request('GET', $src);
+        self::assertResponseIsSuccessful();
+    }
 }
