@@ -1,0 +1,7 @@
+<div class="photo-field" data-controller="photo-preview">
+    {{ form_label(field) }}
+    {{ form_widget(field, {attr: field.vars.attr|merge({'data-photo-preview-target': 'input', 'data-action': 'photo-preview#show'})}) }}
+    {{ form_errors(field) }}
+    <p class="help-text danger" data-photo-preview-target="message" aria-live="polite"></p>
+    <img alt="Preview" class="photo-preview" data-photo-preview-target="preview" hidden>
+</div>

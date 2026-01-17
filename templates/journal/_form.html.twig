@@ -2,7 +2,7 @@
     {{ form_row(form.note) }}
     <div class="grid-fields">
         {{ form_row(form.writtenOn) }}
-        {{ form_row(form.photoFile) }}
+        {{ include('_photo_field.html.twig', {field: form.photoFile}) }}
     </div>
     <button type="submit" class="btn">Add to journal</button>
 {{ form_end(form) }}

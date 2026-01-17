@@ -583,3 +583,16 @@ form.inline {
     margin: 0 0 1rem;
     border-radius: 8px;
 }
+
+.photo-field {
+    margin-bottom: 1rem;
+}
+
+.photo-preview {
+    display: block;
+    max-width: 160px;
+    max-height: 120px;
+    margin-top: .5rem;
+    border-radius: 6px;
+    object-fit: cover;
+}
