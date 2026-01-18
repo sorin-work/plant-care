@@ -2,6 +2,12 @@
     <header>
         <strong>{{ entry.writtenOn|date('j M Y') }}</strong>
         {% if entry.author %}<span class="muted">· {{ entry.author.displayName }}</span>{% endif %}
+        {% if entry.author == app.user or current_membership().role.value == 'owner' %}
+            <form method="post" action="{{ path('journal_delete', {id: entry.id}) }}" class="inline entry-delete" onsubmit="return confirm('Delete this journal entry?')">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete-entry-' ~ entry.id) }}">
+                <button type="submit" class="link danger">Delete</button>
+            </form>
+        {% endif %}
     </header>
     <p>{{ entry.note|autolink|nl2br }}</p>
     {% if entry.photo %}

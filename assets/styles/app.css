@@ -596,3 +596,8 @@ form.inline {
     border-radius: 6px;
     object-fit: cover;
 }
+
+.entry-delete {
+    float: right;
+    font-size: .85rem;
+}

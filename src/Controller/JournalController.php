@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\JournalEntry;
 use App\Entity\Plant;
 use App\Entity\User;
+use App\Enum\HouseholdRole;
 use App\Form\JournalEntryType;
 use App\Household\CurrentHousehold;
 use App\Photo\InvalidPhotoException;
@@ -80,5 +81,30 @@ final class JournalController extends AbstractController
             'plant' => $plant,
             'form' => $form,
         ], new Response(status: $form->isSubmitted() ? 422 : 200));
+    }
+
+    #[Route('/journal/{id}/delete', name: 'journal_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function delete(JournalEntry $entry, Request $request, #[CurrentUser] User $user, PhotoStorage $photos): Response
+    {
+        $plant = $entry->getPlant();
+        if ($plant->getHousehold()->getId() !== $this->current->get()->getId()) {
+            throw $this->createNotFoundException();
+        }
+        $isAuthor = $entry->getAuthor()?->getId() === $user->getId();
+        if (!$isAuthor && HouseholdRole::Owner !== $this->current->membership()->getRole()) {
+            throw $this->createAccessDeniedException('Only the author or the household owner can delete this entry.');
+        }
+        if (!$this->isCsrfTokenValid('delete-entry-'.$entry->getId(), (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        if (null !== $entry->getPhoto()) {
+            $photos->delete($entry->getPhoto());
+        }
+        $this->em->remove($entry);
+        $this->em->flush();
+        $this->addFlash('success', 'Journal entry deleted.');
+
+        return $this->redirectToRoute('journal_index', ['id' => $plant->getId()]);
     }
 }

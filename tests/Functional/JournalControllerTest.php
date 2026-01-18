@@ -3,6 +3,7 @@
 namespace App\Tests\Functional;
 
 use App\Entity\JournalEntry;
+use App\Enum\HouseholdRole;
 use App\Tests\Support\Factory;
 use DateTimeImmutable;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -129,5 +130,42 @@ final class JournalControllerTest extends WebTestCase
         self::assertCount(10, $crawler->filter('.journal-entry'));
         self::assertSame('Entry 1', $crawler->filter('.journal-entry p')->last()->text());
         self::assertSelectorTextContains('.pager', 'Newer');
+    }
+
+    public function testAuthorCanDeleteEntry(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $plant = $this->createPlant($this->createHousehold($user));
+        $this->em()->persist((new JournalEntry($plant, $user, new DateTimeImmutable()))->setNote('Oops'));
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $client->request('GET', '/plants/'.$plant->getId().'/journal');
+        $client->submitForm('Delete');
+        $client->followRedirect();
+
+        self::assertSelectorTextContains('.flash', 'Journal entry deleted.');
+        self::assertCount(0, $this->em()->getRepository(JournalEntry::class)->findAll());
+    }
+
+    public function testOtherMemberCannotDeleteEntry(): void
+    {
+        $client = static::createClient();
+        $owner = $this->createUser('owner@example.com');
+        $household = $this->createHousehold($owner);
+        $plant = $this->createPlant($household);
+        $entry = (new JournalEntry($plant, $owner, new DateTimeImmutable()))->setNote('Mine');
+        $this->em()->persist($entry);
+        $this->em()->flush();
+        $editor = $this->createUser('editor@example.com');
+        $this->addMember($household, $editor, HouseholdRole::Editor);
+        $client->loginUser($editor);
+
+        $crawler = $client->request('GET', '/plants/'.$plant->getId().'/journal');
+        self::assertCount(0, $crawler->filter('.entry-delete'));
+
+        $client->request('POST', '/journal/'.$entry->getId().'/delete', ['_token' => 'x']);
+        self::assertResponseStatusCodeSame(403);
     }
 }
