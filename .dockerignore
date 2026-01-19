@@ -1,0 +1,16 @@
+.git
+.github
+.idea
+.vscode
+.env.local
+.env.*.local
+.php-cs-fixer.cache
+.phpunit.cache
+phpunit.xml
+var/
+vendor/
+public/assets/
+public/bundles/
+assets/vendor/
+tests/
+docker-compose*.yml
