@@ -1,0 +1,38 @@
+name: plant-care
+
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: plantcare
+      MYSQL_USER: plantcare
+      MYSQL_PASSWORD: plantcare
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ['CMD-SHELL', 'mysqladmin ping -h 127.0.0.1 -uplantcare -pplantcare --silent']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 20s
+
+  app:
+    build: .
+    restart: unless-stopped
+    environment:
+      APP_SECRET: ${APP_SECRET:-local-development-secret-change-me}
+      DATABASE_URL: mysql://plantcare:plantcare@db:3306/plantcare?serverVersion=8.4.0&charset=utf8mb4
+      DEFAULT_URI: http://localhost:${WEB_PORT:-4414}
+    volumes:
+      - photos:/var/www/app/var/uploads/photos
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - '${WEB_PORT:-4414}:80'
+
+volumes:
+  db-data:
+  photos:
