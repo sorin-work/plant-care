@@ -14,9 +14,9 @@ use App\Repository\CareEventRepository;
 use App\Repository\JournalEntryRepository;
 use App\Repository\PlantRepository;
 use App\Repository\RoomRepository;
+use App\Security\Permission;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -25,7 +25,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/plants')]
-final class PlantController extends AbstractController
+final class PlantController extends AppController
 {
     public function __construct(
         private readonly CurrentHousehold $current,
@@ -65,6 +65,7 @@ final class PlantController extends AbstractController
     public function new(Request $request, ScheduleFactory $schedules, PhotoStorage $photos): Response
     {
         $household = $this->current->get();
+        $this->guard(Permission::EDIT, $household);
         $plant = new Plant($household);
         $form = $this->createForm(PlantType::class, $plant, ['household' => $household]);
         $form->handleRequest($request);
@@ -86,7 +87,7 @@ final class PlantController extends AbstractController
     #[Route('/{id}', name: 'plant_show', methods: ['GET'], requirements: ['id' => '\d+'])]
     public function show(Plant $plant, CareEventRepository $events, JournalEntryRepository $journal): Response
     {
-        $this->assertInCurrentHousehold($plant);
+        $this->guard(Permission::VIEW, $plant);
         $form = $this->createForm(JournalEntryType::class, new JournalEntry($plant, null, new DateTimeImmutable('today')), [
             'action' => $this->generateUrl('journal_new', ['id' => $plant->getId()]),
         ]);
@@ -102,7 +103,7 @@ final class PlantController extends AbstractController
     #[Route('/{id}/edit', name: 'plant_edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
     public function edit(Plant $plant, Request $request, PhotoStorage $photos): Response
     {
-        $this->assertInCurrentHousehold($plant);
+        $this->guard(Permission::EDIT, $plant);
         $form = $this->createForm(PlantType::class, $plant, ['household' => $plant->getHousehold()]);
         $form->handleRequest($request);
 
@@ -122,7 +123,7 @@ final class PlantController extends AbstractController
     #[Route('/{id}/archive', name: 'plant_archive', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function archive(Plant $plant, Request $request): Response
     {
-        $this->assertInCurrentHousehold($plant);
+        $this->guard(Permission::EDIT, $plant);
         $this->assertCsrf('archive-plant-'.$plant->getId(), $request);
 
         $plant->archive();
@@ -135,7 +136,7 @@ final class PlantController extends AbstractController
     #[Route('/{id}/restore', name: 'plant_restore', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function restore(Plant $plant, Request $request): Response
     {
-        $this->assertInCurrentHousehold($plant);
+        $this->guard(Permission::EDIT, $plant);
         $this->assertCsrf('restore-plant-'.$plant->getId(), $request);
 
         $plant->restore();
@@ -168,19 +169,5 @@ final class PlantController extends AbstractController
         }
 
         return true;
-    }
-
-    private function assertCsrf(string $id, Request $request): void
-    {
-        if (!$this->isCsrfTokenValid($id, (string) $request->request->get('_token'))) {
-            throw $this->createAccessDeniedException('Invalid CSRF token.');
-        }
-    }
-
-    private function assertInCurrentHousehold(Plant $plant): void
-    {
-        if ($plant->getHousehold()->getId() !== $this->current->get()->getId()) {
-            throw $this->createNotFoundException();
-        }
     }
 }

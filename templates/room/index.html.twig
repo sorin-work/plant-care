@@ -16,6 +16,7 @@
                     {% for room in rooms %}
                         <li>
                             <span>{{ room.name }}</span>
+                            {% if is_granted('HOUSEHOLD_EDIT', room) %}
                             <span class="actions">
                                 <a href="{{ path('room_edit', {id: room.id}) }}">Rename</a>
                                 <form method="post" action="{{ path('room_delete', {id: room.id}) }}" class="inline" onsubmit="return confirm('Remove this room? Plants in it are kept.')">
@@ -23,17 +24,20 @@
                                     <button type="submit" class="link danger">Remove</button>
                                 </form>
                             </span>
+                            {% endif %}
                         </li>
                     {% endfor %}
                 </ul>
             {% endif %}
         </section>
-        <section class="card">
-            <h2>Add a room</h2>
-            {{ form_start(form) }}
-                {{ form_row(form.name) }}
-                <button type="submit" class="btn">Add room</button>
-            {{ form_end(form) }}
-        </section>
+        {% if is_granted('HOUSEHOLD_EDIT', current_household()) %}
+            <section class="card">
+                <h2>Add a room</h2>
+                {{ form_start(form) }}
+                    {{ form_row(form.name) }}
+                    <button type="submit" class="btn">Add room</button>
+                {{ form_end(form) }}
+            </section>
+        {% endif %}
     </div>
 {% endblock %}
