@@ -5,10 +5,9 @@ namespace App\Controller;
 use App\Care\CareTasks;
 use App\Entity\CareSchedule;
 use App\Entity\User;
-use App\Household\CurrentHousehold;
+use App\Security\Permission;
 use DateTimeImmutable;
 use InvalidArgumentException;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,11 +20,10 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
  * small JSON body instead.
  */
 #[Route('/tasks')]
-final class CareTaskController extends AbstractController
+final class CareTaskController extends AppController
 {
     public function __construct(
         private readonly CareTasks $tasks,
-        private readonly CurrentHousehold $current,
     ) {
     }
 
@@ -64,12 +62,8 @@ final class CareTaskController extends AbstractController
 
     private function assertAllowed(CareSchedule $schedule, Request $request): void
     {
-        if ($schedule->getPlant()->getHousehold()->getId() !== $this->current->get()->getId()) {
-            throw $this->createNotFoundException();
-        }
-        if (!$this->isCsrfTokenValid('task-'.$schedule->getId(), (string) $request->request->get('_token'))) {
-            throw $this->createAccessDeniedException('Invalid CSRF token.');
-        }
+        $this->guard(Permission::CARE, $schedule);
+        $this->assertCsrf('task-'.$schedule->getId(), $request);
     }
 
     private function respond(Request $request, CareSchedule $schedule, string $message, bool $ok = true): Response

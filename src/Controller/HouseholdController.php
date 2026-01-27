@@ -3,9 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\Household;
-use App\Enum\HouseholdRole;
 use App\Form\HouseholdSettingsType;
 use App\Household\CurrentHousehold;
+use App\Security\Permission;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,12 +22,8 @@ final class HouseholdController extends AbstractController
     #[Route('/settings', name: 'household_settings', methods: ['GET', 'POST'])]
     public function settings(Request $request, EntityManagerInterface $em): Response
     {
-        $membership = $this->current->membership();
-        if (HouseholdRole::Owner !== $membership->getRole()) {
-            throw $this->createAccessDeniedException('Only the owner can change household settings.');
-        }
-
-        $household = $membership->getHousehold();
+        $household = $this->current->get();
+        $this->denyAccessUnlessGranted(Permission::MANAGE, $household, 'Only the owner can change household settings.');
         $form = $this->createForm(HouseholdSettingsType::class, $household);
         $form->handleRequest($request);
 

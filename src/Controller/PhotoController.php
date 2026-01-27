@@ -2,22 +2,19 @@
 
 namespace App\Controller;
 
-use App\Entity\User;
 use App\Photo\PhotoStorage;
 use App\Repository\JournalEntryRepository;
-use App\Repository\MembershipRepository;
 use App\Repository\PlantRepository;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Security\Permission;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
 /**
  * Photos live outside the public directory and are only served to members
  * of the household the plant belongs to.
  */
-final class PhotoController extends AbstractController
+final class PhotoController extends AppController
 {
     #[Route('/photos/{name}', name: 'photo_show', methods: ['GET'], requirements: ['name' => '[a-f0-9]{32}\.(jpg|png|webp)'])]
     public function show(
@@ -25,13 +22,9 @@ final class PhotoController extends AbstractController
         PhotoStorage $storage,
         JournalEntryRepository $entries,
         PlantRepository $plants,
-        MembershipRepository $memberships,
-        #[CurrentUser] User $user,
     ): Response {
         $plant = $entries->findOneBy(['photo' => $name])?->getPlant() ?? $plants->findOneBy(['coverPhoto' => $name]);
-        $household = $plant?->getHousehold();
-
-        if (null === $household || null === $memberships->findOneFor($household, $user) || !$storage->exists($name)) {
+        if (null === $plant || !$this->isGranted(Permission::VIEW, $plant) || !$storage->exists($name)) {
             throw $this->createNotFoundException();
         }
 

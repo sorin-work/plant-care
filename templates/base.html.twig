@@ -38,7 +38,7 @@
                         {% else %}
                             <span class="muted-inverse">{{ current_household().name }}</span>
                         {% endif %}
-                        {% if current_membership().role.value == 'owner' %}
+                        {% if is_granted('HOUSEHOLD_MANAGE', current_household()) %}
                             <a href="{{ path('household_settings') }}">Settings</a>
                         {% endif %}
                         <span class="muted-inverse">{{ app.user.displayName }}</span>

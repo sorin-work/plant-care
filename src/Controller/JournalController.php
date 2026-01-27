@@ -5,15 +5,13 @@ namespace App\Controller;
 use App\Entity\JournalEntry;
 use App\Entity\Plant;
 use App\Entity\User;
-use App\Enum\HouseholdRole;
 use App\Form\JournalEntryType;
-use App\Household\CurrentHousehold;
 use App\Photo\InvalidPhotoException;
 use App\Photo\PhotoStorage;
 use App\Repository\JournalEntryRepository;
+use App\Security\Permission;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,10 +19,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
-final class JournalController extends AbstractController
+final class JournalController extends AppController
 {
     public function __construct(
-        private readonly CurrentHousehold $current,
         private readonly EntityManagerInterface $em,
     ) {
     }
@@ -32,9 +29,7 @@ final class JournalController extends AbstractController
     #[Route('/plants/{id}/journal', name: 'journal_index', methods: ['GET'], requirements: ['id' => '\d+'])]
     public function index(Plant $plant, Request $request, JournalEntryRepository $entries): Response
     {
-        if ($plant->getHousehold()->getId() !== $this->current->get()->getId()) {
-            throw $this->createNotFoundException();
-        }
+        $this->guard(Permission::VIEW, $plant);
 
         return $this->render('journal/index.html.twig', [
             'plant' => $plant,
@@ -45,9 +40,7 @@ final class JournalController extends AbstractController
     #[Route('/plants/{id}/journal/new', name: 'journal_new', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
     public function new(Plant $plant, Request $request, #[CurrentUser] User $user, PhotoStorage $photos): Response
     {
-        if ($plant->getHousehold()->getId() !== $this->current->get()->getId()) {
-            throw $this->createNotFoundException();
-        }
+        $this->guard(Permission::CARE, $plant);
 
         $entry = new JournalEntry($plant, $user, new DateTimeImmutable('today'));
         $form = $this->createForm(JournalEntryType::class, $entry, [
@@ -87,16 +80,12 @@ final class JournalController extends AbstractController
     public function delete(JournalEntry $entry, Request $request, #[CurrentUser] User $user, PhotoStorage $photos): Response
     {
         $plant = $entry->getPlant();
-        if ($plant->getHousehold()->getId() !== $this->current->get()->getId()) {
-            throw $this->createNotFoundException();
-        }
+        $this->guard(Permission::CARE, $entry);
         $isAuthor = $entry->getAuthor()?->getId() === $user->getId();
-        if (!$isAuthor && HouseholdRole::Owner !== $this->current->membership()->getRole()) {
+        if (!$isAuthor && !$this->isGranted(Permission::MANAGE, $entry)) {
             throw $this->createAccessDeniedException('Only the author or the household owner can delete this entry.');
         }
-        if (!$this->isCsrfTokenValid('delete-entry-'.$entry->getId(), (string) $request->request->get('_token'))) {
-            throw $this->createAccessDeniedException('Invalid CSRF token.');
-        }
+        $this->assertCsrf('delete-entry-'.$entry->getId(), $request);
 
         if (null !== $entry->getPhoto()) {
             $photos->delete($entry->getPhoto());

@@ -6,18 +6,16 @@ use App\Entity\CareSchedule;
 use App\Entity\Plant;
 use App\Enum\CareTaskType;
 use App\Form\CareScheduleType;
-use App\Household\CurrentHousehold;
+use App\Security\Permission;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-final class CareScheduleController extends AbstractController
+final class CareScheduleController extends AppController
 {
     public function __construct(
-        private readonly CurrentHousehold $current,
         private readonly EntityManagerInterface $em,
     ) {
     }
@@ -25,7 +23,7 @@ final class CareScheduleController extends AbstractController
     #[Route('/plants/{id}/schedules/{type}/new', name: 'schedule_new', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
     public function new(Plant $plant, CareTaskType $type, Request $request): Response
     {
-        $this->assertInCurrentHousehold($plant);
+        $this->guard(Permission::EDIT, $plant);
         foreach ($plant->getSchedules() as $existing) {
             if ($existing->getType() === $type) {
                 return $this->redirectToRoute('schedule_edit', ['id' => $existing->getId()]);
@@ -41,7 +39,7 @@ final class CareScheduleController extends AbstractController
     #[Route('/schedules/{id}/edit', name: 'schedule_edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
     public function edit(CareSchedule $schedule, Request $request): Response
     {
-        $this->assertInCurrentHousehold($schedule->getPlant());
+        $this->guard(Permission::EDIT, $schedule);
 
         return $this->handle($schedule, $request, 'schedule/edit.html.twig');
     }
@@ -50,10 +48,8 @@ final class CareScheduleController extends AbstractController
     public function delete(CareSchedule $schedule, Request $request): Response
     {
         $plant = $schedule->getPlant();
-        $this->assertInCurrentHousehold($plant);
-        if (!$this->isCsrfTokenValid('delete-schedule-'.$schedule->getId(), (string) $request->request->get('_token'))) {
-            throw $this->createAccessDeniedException('Invalid CSRF token.');
-        }
+        $this->guard(Permission::EDIT, $schedule);
+        $this->assertCsrf('delete-schedule-'.$schedule->getId(), $request);
 
         $plant->removeSchedule($schedule);
         $this->em->flush();
@@ -81,12 +77,5 @@ final class CareScheduleController extends AbstractController
             'plant' => $schedule->getPlant(),
             'form' => $form,
         ], new Response(status: $form->isSubmitted() ? 422 : 200));
-    }
-
-    private function assertInCurrentHousehold(Plant $plant): void
-    {
-        if ($plant->getHousehold()->getId() !== $this->current->get()->getId()) {
-            throw $this->createNotFoundException();
-        }
     }
 }
