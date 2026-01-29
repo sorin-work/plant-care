@@ -14,6 +14,9 @@
                 <p class="muted"><a href="{{ path('species_show', {id: plant.species.id}) }}">{{ plant.species.commonName }}</a> · <em>{{ plant.species.scientificName }}</em></p>
             {% endif %}
         </div>
+        {% set can_edit = is_granted('HOUSEHOLD_EDIT', plant) %}
+        {% set can_care = is_granted('HOUSEHOLD_CARE', plant) %}
+        {% if can_edit %}
         <div class="actions">
             {% if plant.archived %}
                 <form method="post" action="{{ path('plant_restore', {id: plant.id}) }}" class="inline">
@@ -28,6 +31,7 @@
                 </form>
             {% endif %}
         </div>
+        {% endif %}
     </div>
 
     <div class="grid-2">
@@ -53,11 +57,15 @@
                                 </span>
                             </span>
                             <span class="actions">
-                                <a href="{{ path('schedule_edit', {id: schedule.id}) }}">Edit</a>
-                                <form method="post" action="{{ path('task_done', {id: schedule.id}) }}" class="inline">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('task-' ~ schedule.id) }}">
-                                    <button type="submit" class="btn btn-small">Done</button>
-                                </form>
+                                {% if can_edit %}
+                                    <a href="{{ path('schedule_edit', {id: schedule.id}) }}">Edit</a>
+                                {% endif %}
+                                {% if can_care %}
+                                    <form method="post" action="{{ path('task_done', {id: schedule.id}) }}" class="inline">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('task-' ~ schedule.id) }}">
+                                        <button type="submit" class="btn btn-small">Done</button>
+                                    </form>
+                                {% endif %}
                             </span>
                         </li>
                     {% else %}
@@ -66,7 +74,7 @@
                 </ul>
                 {% set used = plant.schedules|map(s => s.type.value) %}
                 {% for type in enum_cases('App\\Enum\\CareTaskType') %}
-                    {% if type.value not in used %}
+                    {% if can_edit and type.value not in used %}
                         <a href="{{ path('schedule_new', {id: plant.id, type: type.value}) }}" class="btn btn-secondary btn-small">+ {{ type.label }} reminders</a>
                     {% endif %}
                 {% endfor %}
@@ -82,7 +90,7 @@
         </section>
         <section class="card">
             <h2>Journal</h2>
-            {% if not plant.archived %}
+            {% if can_care and not plant.archived %}
                 {{ include('journal/_form.html.twig') }}
             {% endif %}
             {% for entry in entries %}

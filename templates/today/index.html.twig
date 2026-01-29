@@ -30,6 +30,7 @@
                             {% endif %}
                             <span class="task-status muted" data-task-target="status" aria-live="polite"></span>
                         </span>
+                        {% if is_granted('HOUSEHOLD_CARE', schedule) %}
                         <span class="actions">
                             <details class="menu">
                                 <summary class="btn btn-secondary btn-small">Later</summary>
@@ -48,6 +49,7 @@
                                 <button type="submit" class="btn btn-small">Done</button>
                             </form>
                         </span>
+                        {% endif %}
                     </li>
                 {% endfor %}
             </ul>

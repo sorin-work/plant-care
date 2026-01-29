@@ -7,7 +7,9 @@
         <h1>Plants</h1>
         <div class="actions">
             <a href="{{ path('plant_archived') }}">Archive</a>
-            <a href="{{ path('plant_new') }}" class="btn">Add a plant</a>
+            {% if is_granted('HOUSEHOLD_EDIT', current_household()) %}
+                <a href="{{ path('plant_new') }}" class="btn">Add a plant</a>
+            {% endif %}
         </div>
     </div>
 

@@ -104,4 +104,24 @@ final class PermissionsTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(403);
     }
+
+    public function testViewerSeesNoActionButtons(): void
+    {
+        [$client, $household] = $this->memberClient(HouseholdRole::Viewer);
+        $plant = $this->createPlant($household, 'Monty');
+        $this->em()->persist(new \App\Entity\CareSchedule($plant, \App\Enum\CareTaskType::Water, 7, new DateTimeImmutable('today')));
+        $this->em()->flush();
+
+        $client->request('GET', '/');
+        self::assertSelectorTextContains('.tasks', 'Monty');
+        self::assertSelectorNotExists('.tasks button');
+
+        $client->request('GET', '/plants/'.$plant->getId());
+        self::assertSelectorNotExists('a:contains("Edit")');
+        self::assertSelectorNotExists('.schedules button');
+        self::assertSelectorNotExists('.journal-form');
+
+        $client->request('GET', '/plants');
+        self::assertSelectorNotExists('a:contains("Add a plant")');
+    }
 }
