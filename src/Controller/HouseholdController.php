@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Household;
 use App\Form\HouseholdSettingsType;
 use App\Household\CurrentHousehold;
+use App\Repository\MembershipRepository;
 use App\Security\Permission;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -38,6 +39,17 @@ final class HouseholdController extends AbstractController
             'form' => $form,
             'household' => $household,
         ], new Response(status: $form->isSubmitted() ? 422 : 200));
+    }
+
+    #[Route('/members', name: 'household_members', methods: ['GET'])]
+    public function members(MembershipRepository $memberships): Response
+    {
+        $household = $this->current->get();
+
+        return $this->render('household/members.html.twig', [
+            'household' => $household,
+            'memberships' => $memberships->findForHousehold($household),
+        ]);
     }
 
     #[Route('/{id}/switch', name: 'household_switch', methods: ['POST'], requirements: ['id' => '\d+'])]

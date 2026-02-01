@@ -1,0 +1,34 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Members · {{ parent() }}{% endblock %}
+
+{% block body %}
+    <div class="page-header">
+        <div>
+            <h1>Members</h1>
+            <p class="muted">People who share the plants of {{ household.name }}.</p>
+        </div>
+    </div>
+
+    <ul class="list card members">
+        {% for membership in memberships %}
+            <li>
+                <span>
+                    <strong>{{ membership.user.displayName }}</strong>
+                    {% if membership.user == app.user %}<span class="muted">(you)</span>{% endif %}
+                    <span class="muted">{{ membership.user.email }}</span>
+                </span>
+                <span class="tag role-{{ membership.role.value }}">{{ membership.role.label }}</span>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <section class="card roles-help">
+        <h2>Roles</h2>
+        <dl class="facts">
+            <dt>Owner</dt><dd>Everything, including settings and members.</dd>
+            <dt>Editor</dt><dd>Adds and edits plants, rooms and schedules, takes care of tasks.</dd>
+            <dt>Viewer</dt><dd>Can look at plants, tasks and the journal.</dd>
+        </dl>
+    </section>
+{% endblock %}

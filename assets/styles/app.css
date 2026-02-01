@@ -601,3 +601,19 @@ form.inline {
     float: right;
     font-size: .85rem;
 }
+
+.members li span {
+    display: inline-flex;
+    gap: .5rem;
+    align-items: baseline;
+    flex-wrap: wrap;
+}
+
+.role-owner {
+    background: var(--green-600);
+    color: #fff;
+}
+
+.roles-help {
+    margin-top: 1.5rem;
+}

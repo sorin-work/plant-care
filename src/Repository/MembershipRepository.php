@@ -41,4 +41,23 @@ class MembershipRepository extends ServiceEntityRepository
 
         return $result;
     }
+
+    /**
+     * @return list<Membership>
+     */
+    public function findForHousehold(Household $household): array
+    {
+        /** @var list<Membership> $result */
+        $result = $this->createQueryBuilder('m')
+            ->addSelect('u')
+            ->join('m.user', 'u')
+            ->where('m.household = :household')
+            ->setParameter('household', $household)
+            ->orderBy('m.joinedAt', 'ASC')
+            ->addOrderBy('m.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        return $result;
+    }
 }
