@@ -621,3 +621,8 @@ form.inline {
 .add-member {
     margin-top: 1.5rem;
 }
+
+.role-form select {
+    width: auto;
+    padding: .2rem .4rem;
+}

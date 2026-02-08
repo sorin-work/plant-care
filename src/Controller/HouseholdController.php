@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Household;
+use App\Entity\Membership;
 use App\Enum\HouseholdRole;
 use App\Form\AddMemberType;
 use App\Form\HouseholdSettingsType;
@@ -12,14 +13,14 @@ use App\Household\MembershipException;
 use App\Repository\MembershipRepository;
 use App\Security\Permission;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/household')]
-final class HouseholdController extends AbstractController
+final class HouseholdController extends AppController
 {
     public function __construct(private readonly CurrentHousehold $current)
     {
@@ -74,6 +75,43 @@ final class HouseholdController extends AbstractController
             'memberships' => $memberships->findForHousehold($household),
             'form' => $form,
         ], new Response(status: $form->isSubmitted() ? 422 : 200));
+    }
+
+    #[Route('/members/{id}/role', name: 'household_member_role', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function changeRole(Membership $membership, Request $request, MemberManager $manager): Response
+    {
+        $this->denyAccessUnlessGranted(Permission::MANAGE, $membership->getHousehold());
+        $this->assertCsrf('member-'.$membership->getId(), $request);
+
+        $role = HouseholdRole::tryFrom($request->request->getString('role'));
+        if (null === $role) {
+            throw new BadRequestHttpException('Unknown role.');
+        }
+
+        try {
+            $manager->changeRole($membership, $role);
+            $this->addFlash('success', \sprintf('%s is now %s.', $membership->getUser()->getDisplayName(), mb_strtolower($role->label())));
+        } catch (MembershipException $e) {
+            $this->addFlash('error', $e->getMessage());
+        }
+
+        return $this->redirectToRoute('household_members');
+    }
+
+    #[Route('/members/{id}/remove', name: 'household_member_remove', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function removeMember(Membership $membership, Request $request, MemberManager $manager): Response
+    {
+        $this->denyAccessUnlessGranted(Permission::MANAGE, $membership->getHousehold());
+        $this->assertCsrf('member-'.$membership->getId(), $request);
+
+        try {
+            $manager->remove($membership);
+            $this->addFlash('success', \sprintf('%s was removed from the household.', $membership->getUser()->getDisplayName()));
+        } catch (MembershipException $e) {
+            $this->addFlash('error', $e->getMessage());
+        }
+
+        return $this->redirectToRoute('household_members');
     }
 
     #[Route('/{id}/switch', name: 'household_switch', methods: ['POST'], requirements: ['id' => '\d+'])]

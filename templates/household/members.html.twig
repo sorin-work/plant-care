@@ -18,7 +18,27 @@
                     {% if membership.user == app.user %}<span class="muted">(you)</span>{% endif %}
                     <span class="muted">{{ membership.user.email }}</span>
                 </span>
-                <span class="tag role-{{ membership.role.value }}">{{ membership.role.label }}</span>
+                {% if is_granted('HOUSEHOLD_MANAGE', household) %}
+                    <span class="actions">
+                        <form method="post" action="{{ path('household_member_role', {id: membership.id}) }}" class="inline role-form">
+                            <input type="hidden" name="_token" value="{{ csrf_token('member-' ~ membership.id) }}">
+                            <select name="role" aria-label="Role of {{ membership.user.displayName }}" onchange="this.form.requestSubmit()">
+                                {% for role in enum_cases('App\\Enum\\HouseholdRole') %}
+                                    <option value="{{ role.value }}" {{ role == membership.role ? 'selected' }}>{{ role.label }}</option>
+                                {% endfor %}
+                            </select>
+                            <noscript><button type="submit" class="btn btn-small">Change</button></noscript>
+                        </form>
+                        {% if membership.user != app.user %}
+                            <form method="post" action="{{ path('household_member_remove', {id: membership.id}) }}" class="inline" onsubmit="return confirm('Remove {{ membership.user.displayName|e('js') }} from this household?')">
+                                <input type="hidden" name="_token" value="{{ csrf_token('member-' ~ membership.id) }}">
+                                <button type="submit" class="link danger">Remove</button>
+                            </form>
+                        {% endif %}
+                    </span>
+                {% else %}
+                    <span class="tag role-{{ membership.role.value }}">{{ membership.role.label }}</span>
+                {% endif %}
             </li>
         {% endfor %}
     </ul>

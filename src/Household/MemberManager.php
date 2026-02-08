@@ -39,4 +39,47 @@ final class MemberManager
 
         return $membership;
     }
+
+    /**
+     * @throws MembershipException
+     */
+    public function changeRole(Membership $membership, HouseholdRole $role): void
+    {
+        if (HouseholdRole::Owner !== $role) {
+            $this->ensureAnotherOwner($membership);
+        }
+
+        $membership->setRole($role);
+        $this->em->flush();
+    }
+
+    /**
+     * @throws MembershipException
+     */
+    public function remove(Membership $membership): void
+    {
+        $this->ensureAnotherOwner($membership);
+
+        $membership->getHousehold()->removeMembership($membership);
+        $this->em->remove($membership);
+        $this->em->flush();
+    }
+
+    /**
+     * A household must always keep at least one owner.
+     */
+    private function ensureAnotherOwner(Membership $membership): void
+    {
+        if (HouseholdRole::Owner !== $membership->getRole()) {
+            return;
+        }
+
+        foreach ($this->memberships->findForHousehold($membership->getHousehold()) as $other) {
+            if ($other->getId() !== $membership->getId() && HouseholdRole::Owner === $other->getRole()) {
+                return;
+            }
+        }
+
+        throw new MembershipException('A household needs at least one owner. Make someone else an owner first.');
+    }
 }

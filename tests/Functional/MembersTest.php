@@ -93,4 +93,67 @@ final class MembersTest extends WebTestCase
         $client->request('POST', '/household/members', ['add_member' => ['email' => 'x@example.com', 'role' => 'owner']]);
         self::assertResponseStatusCodeSame(403);
     }
+
+    public function testOwnerChangesRole(): void
+    {
+        $client = static::createClient();
+        $owner = $this->createUser('owner@example.com', 'Olga');
+        $household = $this->createHousehold($owner);
+        $membership = $this->addMember($household, $this->createUser('vic@example.com', 'Victor'), HouseholdRole::Viewer);
+        $client->loginUser($owner);
+
+        $crawler = $client->request('GET', '/household/members');
+        $form = $crawler->filter('.role-form')->eq(1)->form(['role' => 'editor']);
+        $client->submit($form);
+        $client->followRedirect();
+
+        self::assertSelectorTextContains('.flash', 'Victor is now editor.');
+        self::assertSame(HouseholdRole::Editor, $this->em()->find(\App\Entity\Membership::class, $membership->getId())?->getRole());
+    }
+
+    public function testLastOwnerCannotBeDemoted(): void
+    {
+        $client = static::createClient();
+        $owner = $this->createUser('owner@example.com', 'Olga');
+        $this->createHousehold($owner);
+        $client->loginUser($owner);
+
+        $crawler = $client->request('GET', '/household/members');
+        $client->submit($crawler->filter('.role-form')->first()->form(['role' => 'viewer']));
+        $client->followRedirect();
+
+        self::assertSelectorTextContains('.flash-error', 'at least one owner');
+    }
+
+    public function testOwnerRemovesMember(): void
+    {
+        $client = static::createClient();
+        $owner = $this->createUser('owner@example.com', 'Olga');
+        $household = $this->createHousehold($owner);
+        $victor = $this->createUser('vic@example.com', 'Victor');
+        $this->addMember($household, $victor, HouseholdRole::Editor);
+        $client->loginUser($owner);
+
+        $client->request('GET', '/household/members');
+        $client->submitForm('Remove');
+        $crawler = $client->followRedirect();
+
+        self::assertSelectorTextContains('.flash', 'Victor was removed');
+        self::assertCount(1, $crawler->filter('.members li'));
+        self::assertNull(static::getContainer()->get(MembershipRepository::class)->findOneFor($household, $victor));
+    }
+
+    public function testEditorCannotChangeRoles(): void
+    {
+        $client = static::createClient();
+        $owner = $this->createUser('owner@example.com');
+        $household = $this->createHousehold($owner);
+        $editor = $this->createUser('editor@example.com');
+        $membership = $this->addMember($household, $editor, HouseholdRole::Editor);
+        $client->loginUser($editor);
+
+        $client->request('POST', '/household/members/'.$membership->getId().'/role', ['role' => 'owner', '_token' => 'x']);
+
+        self::assertResponseStatusCodeSame(403);
+    }
 }
