@@ -23,6 +23,19 @@
         {% endfor %}
     </ul>
 
+    {% if is_granted('HOUSEHOLD_MANAGE', household) %}
+        <section class="card add-member">
+            <h2>Add someone</h2>
+            {{ form_start(form) }}
+                <div class="grid-fields">
+                    {{ form_row(form.email) }}
+                    {{ form_row(form.role) }}
+                </div>
+                <button type="submit" class="btn">Add member</button>
+            {{ form_end(form) }}
+        </section>
+    {% endif %}
+
     <section class="card roles-help">
         <h2>Roles</h2>
         <dl class="facts">
