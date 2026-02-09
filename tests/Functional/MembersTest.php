@@ -156,4 +156,46 @@ final class MembersTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(403);
     }
+
+    public function testMemberLeavesHousehold(): void
+    {
+        $client = static::createClient();
+        $owner = $this->createUser('owner@example.com', 'Olga');
+        $shared = $this->createHousehold($owner, 'Shared');
+        $me = $this->createUser('me@example.com', 'Me');
+        $this->createHousehold($me, 'Mine');
+        $membership = $this->addMember($shared, $me, HouseholdRole::Editor);
+        $client->loginUser($me);
+
+        $crawler = $client->request('GET', '/');
+        $client->request('POST', '/household/'.$shared->getId().'/switch', ['_token' => $crawler->filter('.household-switch input[name=_token]')->attr('value')]);
+        $client->request('GET', '/household/members');
+        $client->submitForm('Leave Shared');
+        $client->followRedirect();
+
+        self::assertSelectorTextContains('.flash', 'You left Shared.');
+        self::assertSelectorTextContains('.site-nav', 'Mine');
+        self::assertNull(static::getContainer()->get(MembershipRepository::class)->findOneFor($shared, $me));
+        self::assertNotNull($this->em()->find(\App\Entity\Household::class, $shared->getId()));
+        unset($membership);
+    }
+
+    public function testLastMemberLeavingDeletesHousehold(): void
+    {
+        $client = static::createClient();
+        $me = $this->createUser('me@example.com', 'Me');
+        $household = $this->createHousehold($me, 'Solo');
+        $this->createPlant($household, 'Lonely');
+        $id = $household->getId();
+        $client->loginUser($me);
+
+        $client->request('GET', '/household/members');
+        self::assertSelectorTextContains('.danger-zone', 'deletes the household');
+        $client->submitForm('Leave Solo');
+        $client->followRedirect();
+
+        $this->em()->clear();
+        self::assertNull($this->em()->find(\App\Entity\Household::class, $id));
+        self::assertSelectorTextContains('.site-nav', "Me's home");
+    }
 }

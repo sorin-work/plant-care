@@ -114,6 +114,19 @@ final class HouseholdController extends AppController
         return $this->redirectToRoute('household_members');
     }
 
+    #[Route('/leave', name: 'household_leave', methods: ['POST'])]
+    public function leave(Request $request, MemberManager $manager): Response
+    {
+        $membership = $this->current->membership();
+        $this->assertCsrf('leave-household', $request);
+        $name = $membership->getHousehold()->getName();
+
+        $manager->leave($membership);
+        $this->addFlash('success', \sprintf('You left %s.', $name));
+
+        return $this->redirectToRoute('home');
+    }
+
     #[Route('/{id}/switch', name: 'household_switch', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function switch(Household $household, Request $request): Response
     {

@@ -56,6 +56,14 @@
         </section>
     {% endif %}
 
+    <form method="post" action="{{ path('household_leave') }}" class="danger-zone" onsubmit="return confirm('Leave {{ household.name|e('js') }}? You will lose access to its plants.')">
+        <input type="hidden" name="_token" value="{{ csrf_token('leave-household') }}">
+        <button type="submit" class="link danger">Leave {{ household.name }}</button>
+        {% if memberships|length == 1 %}
+            <p class="help-text">You are the only member: leaving deletes the household and all its plants.</p>
+        {% endif %}
+    </form>
+
     <section class="card roles-help">
         <h2>Roles</h2>
         <dl class="facts">

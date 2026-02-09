@@ -66,6 +66,23 @@ final class MemberManager
     }
 
     /**
+     * The user leaves the household. When nobody is left the household and
+     * its plants are deleted.
+     */
+    public function leave(Membership $membership): void
+    {
+        $household = $membership->getHousehold();
+        $household->removeMembership($membership);
+        $this->em->remove($membership);
+
+        if ($household->getMemberships()->isEmpty()) {
+            $this->em->remove($household);
+        }
+
+        $this->em->flush();
+    }
+
+    /**
      * A household must always keep at least one owner.
      */
     private function ensureAnotherOwner(Membership $membership): void
