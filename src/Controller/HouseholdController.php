@@ -4,10 +4,13 @@ namespace App\Controller;
 
 use App\Entity\Household;
 use App\Entity\Membership;
+use App\Entity\User;
 use App\Enum\HouseholdRole;
 use App\Form\AddMemberType;
 use App\Form\HouseholdSettingsType;
+use App\Form\NewHouseholdType;
 use App\Household\CurrentHousehold;
+use App\Household\HouseholdManager;
 use App\Household\MemberManager;
 use App\Household\MembershipException;
 use App\Repository\MembershipRepository;
@@ -18,6 +21,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
 #[Route('/household')]
 final class HouseholdController extends AppController
@@ -44,6 +48,28 @@ final class HouseholdController extends AppController
         return $this->render('household/settings.html.twig', [
             'form' => $form,
             'household' => $household,
+        ], new Response(status: $form->isSubmitted() ? 422 : 200));
+    }
+
+    #[Route('/new', name: 'household_new', methods: ['GET', 'POST'])]
+    public function new(Request $request, HouseholdManager $households, EntityManagerInterface $em, #[CurrentUser] User $user): Response
+    {
+        $household = $households->create($user, '');
+        $household->setTimezone($this->current->get()->getTimezone());
+        $household->setHemisphere($this->current->get()->getHemisphere());
+        $form = $this->createForm(NewHouseholdType::class, $household);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $em->flush();
+            $this->current->switchTo($household);
+            $this->addFlash('success', \sprintf('%s is ready. Add some rooms and plants!', $household->getName()));
+
+            return $this->redirectToRoute('room_index');
+        }
+
+        return $this->render('household/new.html.twig', [
+            'form' => $form,
         ], new Response(status: $form->isSubmitted() ? 422 : 200));
     }
 

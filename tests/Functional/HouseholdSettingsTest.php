@@ -60,4 +60,36 @@ final class HouseholdSettingsTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(403);
     }
+
+    public function testCreateAnotherHousehold(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $this->createHousehold($user, 'Flat');
+        $client->loginUser($user);
+
+        $client->request('GET', '/household/new');
+        $client->submitForm('Create household', ['new_household[name]' => 'Office']);
+        self::assertResponseRedirects('/rooms');
+        $client->followRedirect();
+
+        self::assertSelectorTextContains('.household-switch option[selected]', 'Office');
+        $memberships = static::getContainer()->get(\App\Repository\MembershipRepository::class)->findForUser($user);
+        self::assertCount(2, $memberships);
+        self::assertSame(HouseholdRole::Owner, $memberships[1]->getRole());
+    }
+
+    public function testNewHouseholdNeedsAName(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $this->createHousehold($user, 'Flat');
+        $client->loginUser($user);
+
+        $client->request('GET', '/household/new');
+        $client->submitForm('Create household', ['new_household[name]' => '']);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertCount(1, static::getContainer()->get(\App\Repository\MembershipRepository::class)->findForUser($user));
+    }
 }

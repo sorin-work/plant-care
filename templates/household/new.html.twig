@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New household · {{ parent() }}{% endblock %}
+
+{% block body %}
+    <section class="card narrow">
+        <h1>Start another household</h1>
+        <p class="muted">For the office, a holiday home or a friend's plants you look after.</p>
+        {{ form_start(form) }}
+            {{ form_row(form.name) }}
+            {{ form_row(form.timezone) }}
+            {{ form_row(form.hemisphere) }}
+            <button type="submit" class="btn">Create household</button>
+        {{ form_end(form) }}
+    </section>
+{% endblock %}
