@@ -23,8 +23,8 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 final class HouseholdVoter extends Voter
 {
     private const GRANTS = [
-        Permission::VIEW => [HouseholdRole::Owner, HouseholdRole::Editor, HouseholdRole::Viewer],
-        Permission::CARE => [HouseholdRole::Owner, HouseholdRole::Editor],
+        Permission::VIEW => [HouseholdRole::Owner, HouseholdRole::Editor, HouseholdRole::Caretaker, HouseholdRole::Viewer],
+        Permission::CARE => [HouseholdRole::Owner, HouseholdRole::Editor, HouseholdRole::Caretaker],
         Permission::EDIT => [HouseholdRole::Owner, HouseholdRole::Editor],
         Permission::MANAGE => [HouseholdRole::Owner],
     ];

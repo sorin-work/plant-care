@@ -124,4 +124,20 @@ final class PermissionsTest extends WebTestCase
         $client->request('GET', '/plants');
         self::assertSelectorNotExists('a:contains("Add a plant")');
     }
+
+    public function testCaretakerCanCareButNotEdit(): void
+    {
+        [$client, $household] = $this->memberClient(HouseholdRole::Caretaker);
+        $plant = $this->createPlant($household, 'Monty');
+        $this->em()->persist(new \App\Entity\CareSchedule($plant, \App\Enum\CareTaskType::Water, 7, new DateTimeImmutable('today')));
+        $this->em()->flush();
+
+        $client->request('GET', '/');
+        $client->submitForm('Done');
+        $client->followRedirect();
+        self::assertSelectorTextContains('.flash', 'Monty: water done.');
+
+        $client->request('GET', '/plants/'.$plant->getId().'/edit');
+        self::assertResponseStatusCodeSame(403);
+    }
 }

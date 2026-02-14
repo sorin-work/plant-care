@@ -31,6 +31,8 @@ final class HouseholdVoterTest extends TestCase
         yield 'editor can edit' => [HouseholdRole::Editor, Permission::EDIT, $granted];
         yield 'editor can care' => [HouseholdRole::Editor, Permission::CARE, $granted];
         yield 'editor cannot manage' => [HouseholdRole::Editor, Permission::MANAGE, $denied];
+        yield 'caretaker can care' => [HouseholdRole::Caretaker, Permission::CARE, $granted];
+        yield 'caretaker cannot edit' => [HouseholdRole::Caretaker, Permission::EDIT, $denied];
         yield 'viewer can view' => [HouseholdRole::Viewer, Permission::VIEW, $granted];
         yield 'viewer cannot care' => [HouseholdRole::Viewer, Permission::CARE, $denied];
         yield 'viewer cannot edit' => [HouseholdRole::Viewer, Permission::EDIT, $denied];
