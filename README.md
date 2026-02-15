@@ -9,6 +9,23 @@ plants in your home, with a daily list of what needs doing.
 - **Today**: due and overdue tasks grouped by room, done / snooze / skip in one click
 - **Journal** with notes and photos for every plant
 - **Species catalog** with care defaults for 30+ common houseplants
+- **Sharing**: invite the people you live with to a household, each with a role
+
+## Households and roles
+
+Everything (rooms, plants, schedules, journal) belongs to a household. You get one
+when you sign up and can start more, e.g. for the office. Members are added by the
+email of their account and get one of these roles:
+
+| Role      | Can do                                                          |
+| --------- | --------------------------------------------------------------- |
+| Owner     | Everything, including household settings and members            |
+| Editor    | Add and edit plants, rooms and schedules; take care of tasks    |
+| Caretaker | Mark tasks done, snooze or skip them, write in the journal      |
+| Viewer    | Look at plants, tasks and the journal                           |
+
+The household timezone decides when a new day starts for the today list, and the
+hemisphere decides which months count as winter and summer.
 
 ## Running with Docker
 
