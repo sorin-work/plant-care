@@ -5,8 +5,8 @@ namespace App\Controller;
 use App\Care\CareTasks;
 use App\Entity\CareSchedule;
 use App\Entity\User;
+use App\Household\HouseholdClock;
 use App\Security\Permission;
-use DateTimeImmutable;
 use InvalidArgumentException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,6 +24,7 @@ final class CareTaskController extends AppController
 {
     public function __construct(
         private readonly CareTasks $tasks,
+        private readonly HouseholdClock $clock,
     ) {
     }
 
@@ -31,7 +32,7 @@ final class CareTaskController extends AppController
     public function done(CareSchedule $schedule, Request $request, #[CurrentUser] User $user): Response
     {
         $this->assertAllowed($schedule, $request);
-        $this->tasks->markDone($schedule, $user, new DateTimeImmutable('today'));
+        $this->tasks->markDone($schedule, $user, $this->clock->today($schedule->getPlant()->getHousehold()));
 
         return $this->respond($request, $schedule, \sprintf('%s: %s done.', $schedule->getPlant()->getName(), mb_strtolower($schedule->getType()->label())));
     }
@@ -40,7 +41,7 @@ final class CareTaskController extends AppController
     public function skip(CareSchedule $schedule, Request $request, #[CurrentUser] User $user): Response
     {
         $this->assertAllowed($schedule, $request);
-        $this->tasks->skip($schedule, $user, new DateTimeImmutable('today'));
+        $this->tasks->skip($schedule, $user, $this->clock->today($schedule->getPlant()->getHousehold()));
 
         return $this->respond($request, $schedule, \sprintf('Skipped %s for %s this time.', mb_strtolower($schedule->getType()->label()), $schedule->getPlant()->getName()));
     }
@@ -52,7 +53,7 @@ final class CareTaskController extends AppController
         $days = $request->request->getInt('days', 1);
 
         try {
-            $this->tasks->snooze($schedule, $user, $days, new DateTimeImmutable('today'));
+            $this->tasks->snooze($schedule, $user, $days, $this->clock->today($schedule->getPlant()->getHousehold()));
         } catch (InvalidArgumentException $e) {
             return $this->respond($request, $schedule, $e->getMessage(), false);
         }

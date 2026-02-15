@@ -6,8 +6,8 @@ use App\Entity\CareSchedule;
 use App\Entity\Plant;
 use App\Enum\CareTaskType;
 use App\Form\CareScheduleType;
+use App\Household\HouseholdClock;
 use App\Security\Permission;
-use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,7 +21,7 @@ final class CareScheduleController extends AppController
     }
 
     #[Route('/plants/{id}/schedules/{type}/new', name: 'schedule_new', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
-    public function new(Plant $plant, CareTaskType $type, Request $request): Response
+    public function new(Plant $plant, CareTaskType $type, Request $request, HouseholdClock $clock): Response
     {
         $this->guard(Permission::EDIT, $plant);
         foreach ($plant->getSchedules() as $existing) {
@@ -30,7 +30,7 @@ final class CareScheduleController extends AppController
             }
         }
 
-        $schedule = new CareSchedule($plant, $type, CareTaskType::Water === $type ? 7 : 30, new DateTimeImmutable('today'));
+        $schedule = new CareSchedule($plant, $type, CareTaskType::Water === $type ? 7 : 30, $clock->today($plant->getHousehold()));
         $plant->removeSchedule($schedule);
 
         return $this->handle($schedule, $request, 'schedule/new.html.twig');

@@ -6,11 +6,11 @@ use App\Entity\JournalEntry;
 use App\Entity\Plant;
 use App\Entity\User;
 use App\Form\JournalEntryType;
+use App\Household\HouseholdClock;
 use App\Photo\InvalidPhotoException;
 use App\Photo\PhotoStorage;
 use App\Repository\JournalEntryRepository;
 use App\Security\Permission;
-use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -38,11 +38,11 @@ final class JournalController extends AppController
     }
 
     #[Route('/plants/{id}/journal/new', name: 'journal_new', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
-    public function new(Plant $plant, Request $request, #[CurrentUser] User $user, PhotoStorage $photos): Response
+    public function new(Plant $plant, Request $request, #[CurrentUser] User $user, PhotoStorage $photos, HouseholdClock $clock): Response
     {
         $this->guard(Permission::CARE, $plant);
 
-        $entry = new JournalEntry($plant, $user, new DateTimeImmutable('today'));
+        $entry = new JournalEntry($plant, $user, $clock->today($plant->getHousehold()));
         $form = $this->createForm(JournalEntryType::class, $entry, [
             'action' => $this->generateUrl('journal_new', ['id' => $plant->getId()]),
         ]);

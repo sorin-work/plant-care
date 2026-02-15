@@ -7,9 +7,11 @@ use App\Enum\CareTaskType;
 use App\Tests\Support\Factory;
 use DateTimeImmutable;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\Clock\Test\ClockSensitiveTrait;
 
 final class HomeControllerTest extends WebTestCase
 {
+    use ClockSensitiveTrait;
     use Factory;
 
     public function testAnonymousVisitorIsSentToLogin(): void
@@ -104,5 +106,28 @@ final class HomeControllerTest extends WebTestCase
         $crawler = $client->request('GET', '/');
 
         self::assertSame(['4 days late', '1 day late', 'due today'], $crawler->filter('.tasks .badge')->each(fn ($b) => $b->text()));
+    }
+
+    public function testTodayFollowsTheHouseholdTimezone(): void
+    {
+        // 09:00 on 11 March in Auckland, still 10 March in UTC.
+        static::mockTime('2026-03-10 20:00:00 UTC');
+        $client = static::createClient();
+        $user = $this->createUser();
+        $household = $this->createHousehold($user)->setTimezone('Pacific/Auckland');
+        $plant = $this->createPlant($household, 'Kiwi');
+        $schedule = (new CareSchedule($plant, CareTaskType::Water, 7, new DateTimeImmutable('2026-03-11')))->setSeasonal(false);
+        $this->em()->persist($schedule);
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $client->request('GET', '/');
+        self::assertSelectorTextContains('.page-header', 'Wednesday, 11 March');
+        self::assertSelectorTextContains('.tasks', 'Kiwi');
+
+        $client->submitForm('Done');
+        $reloaded = $this->em()->find(CareSchedule::class, $schedule->getId());
+        self::assertSame('2026-03-11', $reloaded?->getLastDoneOn()?->format('Y-m-d'));
+        self::assertSame('2026-03-18', $reloaded->getNextDueOn()->format('Y-m-d'));
     }
 }

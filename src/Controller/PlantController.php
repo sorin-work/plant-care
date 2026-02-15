@@ -8,6 +8,7 @@ use App\Entity\Plant;
 use App\Form\JournalEntryType;
 use App\Form\PlantType;
 use App\Household\CurrentHousehold;
+use App\Household\HouseholdClock;
 use App\Photo\InvalidPhotoException;
 use App\Photo\PhotoStorage;
 use App\Repository\CareEventRepository;
@@ -15,7 +16,6 @@ use App\Repository\JournalEntryRepository;
 use App\Repository\PlantRepository;
 use App\Repository\RoomRepository;
 use App\Security\Permission;
-use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormInterface;
@@ -29,6 +29,7 @@ final class PlantController extends AppController
 {
     public function __construct(
         private readonly CurrentHousehold $current,
+        private readonly HouseholdClock $clock,
         private readonly EntityManagerInterface $em,
     ) {
     }
@@ -71,7 +72,7 @@ final class PlantController extends AppController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid() && $this->handleCover($form, $plant, $photos)) {
-            $schedules->createDefaults($plant, new DateTimeImmutable('today'));
+            $schedules->createDefaults($plant, $this->clock->today($household));
             $this->em->persist($plant);
             $this->em->flush();
             $this->addFlash('success', \sprintf('%s has been added.', $plant->getName()));
@@ -88,7 +89,7 @@ final class PlantController extends AppController
     public function show(Plant $plant, CareEventRepository $events, JournalEntryRepository $journal): Response
     {
         $this->guard(Permission::VIEW, $plant);
-        $form = $this->createForm(JournalEntryType::class, new JournalEntry($plant, null, new DateTimeImmutable('today')), [
+        $form = $this->createForm(JournalEntryType::class, new JournalEntry($plant, null, $this->clock->today($plant->getHousehold())), [
             'action' => $this->generateUrl('journal_new', ['id' => $plant->getId()]),
         ]);
 
