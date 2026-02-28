@@ -44,6 +44,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private DateTimeImmutable $createdAt;
 
+    /** sha256 of the personal API token, the token itself is only shown once. */
+    #[ORM\Column(length: 64, unique: true, nullable: true)]
+    private ?string $apiTokenHash = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?DateTimeImmutable $apiTokenCreatedAt = null;
+
     public function __construct()
     {
         $this->createdAt = new DateTimeImmutable();
@@ -128,5 +135,33 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Deprecated]
     public function eraseCredentials(): void
     {
+    }
+
+    public function getApiTokenHash(): ?string
+    {
+        return $this->apiTokenHash;
+    }
+
+    public function getApiTokenCreatedAt(): ?DateTimeImmutable
+    {
+        return $this->apiTokenCreatedAt;
+    }
+
+    /**
+     * Creates a new personal API token and returns it in clear text.
+     */
+    public function generateApiToken(): string
+    {
+        $token = 'pc_'.bin2hex(random_bytes(24));
+        $this->apiTokenHash = hash('sha256', $token);
+        $this->apiTokenCreatedAt = new DateTimeImmutable();
+
+        return $token;
+    }
+
+    public function revokeApiToken(): void
+    {
+        $this->apiTokenHash = null;
+        $this->apiTokenCreatedAt = null;
     }
 }

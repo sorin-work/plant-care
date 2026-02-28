@@ -42,7 +42,7 @@
                         {% if is_granted('HOUSEHOLD_MANAGE', current_household()) %}
                             <a href="{{ path('household_settings') }}">Settings</a>
                         {% endif %}
-                        <span class="muted-inverse">{{ app.user.displayName }}</span>
+                        <a href="{{ path('account') }}">{{ app.user.displayName }}</a>
                         <a href="{{ path('app_logout') }}">Sign out</a>
                     {% else %}
                         <a href="{{ path('app_login') }}">Sign in</a>

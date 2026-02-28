@@ -626,3 +626,12 @@ form.inline {
     width: auto;
     padding: .2rem .4rem;
 }
+
+.token-value {
+    display: block;
+    padding: .5rem;
+    background: #fff;
+    border-radius: 6px;
+    word-break: break-all;
+    user-select: all;
+}
