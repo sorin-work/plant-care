@@ -70,4 +70,17 @@ trait Factory
 
         return $plant;
     }
+
+    /**
+     * Gives the user an API token and returns the Authorization header for it.
+     *
+     * @return array<string, string>
+     */
+    protected function apiHeaders(User $user): array
+    {
+        $token = $user->generateApiToken();
+        $this->em()->flush();
+
+        return ['HTTP_AUTHORIZATION' => 'Bearer '.$token, 'HTTP_ACCEPT' => 'application/json'];
+    }
 }
