@@ -3,6 +3,7 @@
 namespace App\Tests\Functional\Api;
 
 use App\Tests\Support\Factory;
+use DateTimeImmutable;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 final class PlantsTest extends WebTestCase
@@ -29,5 +30,34 @@ final class PlantsTest extends WebTestCase
         self::assertSame('Office', $plants[0]['room']);
         self::assertSame('medium', $plants[0]['light']);
         self::assertFalse($plants[0]['hasPhoto']);
+    }
+
+    public function testShowsPlantWithSchedules(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $plant = $this->createPlant($this->createHousehold($user), 'Fern');
+        $this->em()->persist(new \App\Entity\CareSchedule($plant, \App\Enum\CareTaskType::Water, 3, new DateTimeImmutable('2026-03-10')));
+        $this->em()->flush();
+
+        $client->request('GET', '/api/plants/'.$plant->getId(), server: $this->apiHeaders($user));
+
+        $data = json_decode((string) $client->getResponse()->getContent(), true);
+        self::assertSame('Fern', $data['name']);
+        self::assertSame('water', $data['schedules'][0]['type']);
+        self::assertSame('2026-03-10', $data['schedules'][0]['nextDueOn']);
+        self::assertSame([], $data['recentCare']);
+    }
+
+    public function testForeignPlantIsNotFound(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $this->createHousehold($user);
+        $plant = $this->createPlant($this->createHousehold($this->createUser('x@example.com')), 'Theirs');
+
+        $client->request('GET', '/api/plants/'.$plant->getId(), server: $this->apiHeaders($user));
+
+        self::assertResponseStatusCodeSame(404);
     }
 }
