@@ -64,4 +64,46 @@ final class TasksTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(404);
     }
+
+    public function testSkip(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $plant = $this->createPlant($this->createHousehold($user), 'Monty');
+        $schedule = $this->schedule($plant, '-2 days');
+
+        $client->request('POST', '/api/tasks/'.$schedule->getId().'/skip', server: $this->apiHeaders($user));
+
+        self::assertResponseIsSuccessful();
+        $data = json_decode((string) $client->getResponse()->getContent(), true);
+        self::assertNull($data['lastDoneOn']);
+        self::assertSame((new DateTimeImmutable('today +5 days'))->format('Y-m-d'), $data['nextDueOn']);
+    }
+
+    public function testSnooze(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $schedule = $this->schedule($this->createPlant($this->createHousehold($user)));
+
+        $client->request('POST', '/api/tasks/'.$schedule->getId().'/snooze', server: $this->apiHeaders($user) + ['CONTENT_TYPE' => 'application/json'], content: '{"days": 2}');
+
+        self::assertResponseIsSuccessful();
+        $data = json_decode((string) $client->getResponse()->getContent(), true);
+        self::assertSame((new DateTimeImmutable('today +2 days'))->format('Y-m-d'), $data['snoozedUntil']);
+    }
+
+    public function testSnoozeValidation(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $schedule = $this->schedule($this->createPlant($this->createHousehold($user)));
+        $headers = $this->apiHeaders($user) + ['CONTENT_TYPE' => 'application/json'];
+
+        $client->request('POST', '/api/tasks/'.$schedule->getId().'/snooze', server: $headers, content: '{"days": 40}');
+        self::assertResponseStatusCodeSame(422);
+
+        $client->request('POST', '/api/tasks/'.$schedule->getId().'/snooze', server: $headers, content: '{"days": "3"}');
+        self::assertResponseStatusCodeSame(422);
+    }
 }
