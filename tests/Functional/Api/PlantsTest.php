@@ -60,4 +60,34 @@ final class PlantsTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(404);
     }
+
+    public function testErrorsAreJson(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $this->createHousehold($user);
+
+        $client->request('GET', '/api/plants/999999', server: $this->apiHeaders($user));
+
+        self::assertResponseStatusCodeSame(404);
+        self::assertResponseHeaderSame('content-type', 'application/json');
+        self::assertArrayHasKey('error', json_decode((string) $client->getResponse()->getContent(), true));
+    }
+
+    public function testForbiddenIsJson(): void
+    {
+        $client = static::createClient();
+        $owner = $this->createUser('owner@example.com');
+        $household = $this->createHousehold($owner);
+        $viewer = $this->createUser('viewer@example.com');
+        $this->addMember($household, $viewer, \App\Enum\HouseholdRole::Viewer);
+        $schedule = new \App\Entity\CareSchedule($this->createPlant($household), \App\Enum\CareTaskType::Water, 7, new DateTimeImmutable());
+        $this->em()->persist($schedule);
+        $this->em()->flush();
+
+        $client->request('POST', '/api/tasks/'.$schedule->getId().'/done', server: $this->apiHeaders($viewer));
+
+        self::assertResponseStatusCodeSame(403);
+        self::assertSame(['error' => 'You are not allowed to do this.'], json_decode((string) $client->getResponse()->getContent(), true));
+    }
 }
