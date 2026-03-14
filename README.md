@@ -27,6 +27,8 @@ email of their account and get one of these roles:
 The household timezone decides when a new day starts for the today list, and the
 hemisphere decides which months count as winter and summer.
 
+There is also a small JSON API with personal tokens, see [docs/api.md](docs/api.md).
+
 ## Running with Docker
 
 ```bash
