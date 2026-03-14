@@ -168,4 +168,20 @@ final class JournalControllerTest extends WebTestCase
         $client->request('POST', '/journal/'.$entry->getId().'/delete', ['_token' => 'x']);
         self::assertResponseStatusCodeSame(403);
     }
+
+    public function testHtmlInNotesIsEscaped(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $plant = $this->createPlant($this->createHousehold($user));
+        $client->loginUser($user);
+
+        $client->request('GET', '/plants/'.$plant->getId());
+        $client->submitForm('Add to journal', ['journal_entry[note]' => "<img src=x onerror=alert(1)>\nsee https://example.com"]);
+        $crawler = $client->followRedirect();
+
+        self::assertCount(0, $crawler->filter('.journal-entry img'));
+        self::assertStringContainsString('&lt;img src=x onerror=alert(1)&gt;<br />', (string) $client->getResponse()->getContent());
+        self::assertSelectorExists('.journal-entry a[href="https://example.com"]');
+    }
 }

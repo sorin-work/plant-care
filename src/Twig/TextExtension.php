@@ -20,16 +20,27 @@ final class TextExtension extends AbstractExtension
      */
     public function autolink(string $text): string
     {
-        return (string) preg_replace_callback(
-            '~\bhttps?://[^\s<>"\']+~i',
-            static function (array $m): string {
-                $url = rtrim($m[0], '.,;:!?)');
-                $rest = substr($m[0], \strlen($url));
-                $safe = htmlspecialchars($url, \ENT_QUOTES);
+        // The output is marked safe, so everything that is not one of our
+        // links must be escaped here.
+        $parts = preg_split('~(\bhttps?://[^\s<>"\']+)~i', $text, -1, \PREG_SPLIT_DELIM_CAPTURE) ?: [$text];
 
-                return \sprintf('<a href="%s" rel="nofollow noopener" target="_blank">%s</a>%s', $safe, $safe, $rest);
-            },
-            $text,
-        );
+        $html = '';
+        foreach ($parts as $i => $part) {
+            if (0 === $i % 2) {
+                $html .= self::escape($part);
+                continue;
+            }
+
+            $url = rtrim($part, '.,;:!?)');
+            $safe = self::escape($url);
+            $html .= \sprintf('<a href="%s" rel="nofollow noopener" target="_blank">%s</a>%s', $safe, $safe, self::escape(substr($part, \strlen($url))));
+        }
+
+        return $html;
+    }
+
+    private static function escape(string $text): string
+    {
+        return htmlspecialchars($text, \ENT_QUOTES | \ENT_SUBSTITUTE, 'UTF-8');
     }
 }

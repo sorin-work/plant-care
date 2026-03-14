@@ -27,6 +27,12 @@ final class TextExtensionTest extends TestCase
             '<a href="https://shop.example/p?id=1&amp;ref=2" rel="nofollow noopener" target="_blank">https://shop.example/p?id=1&amp;ref=2</a>',
         ];
         yield 'not a link' => ['ftp://old.example', 'ftp://old.example'];
+        yield 'html is escaped' => ['<b>bold</b> & "quoted"', '&lt;b&gt;bold&lt;/b&gt; &amp; &quot;quoted&quot;'];
+        yield 'script next to a link is escaped' => [
+            '<script>alert(1)</script> https://example.com',
+            '&lt;script&gt;alert(1)&lt;/script&gt; <a href="https://example.com" rel="nofollow noopener" target="_blank">https://example.com</a>',
+        ];
+        yield 'attribute injection' => ['<img src=x onerror=alert(1)>', '&lt;img src=x onerror=alert(1)&gt;'];
     }
 
     #[DataProvider('texts')]
