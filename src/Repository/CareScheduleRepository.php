@@ -41,4 +41,27 @@ class CareScheduleRepository extends ServiceEntityRepository
 
         return $result;
     }
+
+    /**
+     * Schedules of active plants that come due after $from and up to $until.
+     *
+     * @return list<CareSchedule>
+     */
+    public function findComingUp(Household $household, DateTimeImmutable $from, DateTimeImmutable $until): array
+    {
+        /** @var list<CareSchedule> $result */
+        $result = $this->createQueryBuilder('s')
+            ->addSelect('p')
+            ->join('s.plant', 'p')
+            ->where('p.household = :household')
+            ->andWhere('p.archivedAt IS NULL')
+            ->andWhere('(s.nextDueOn > :from AND s.nextDueOn <= :until) OR (s.snoozedUntil > :from AND s.snoozedUntil <= :until)')
+            ->setParameter('household', $household)
+            ->setParameter('from', $from->format('Y-m-d'))
+            ->setParameter('until', $until->format('Y-m-d'))
+            ->getQuery()
+            ->getResult();
+
+        return $result;
+    }
 }

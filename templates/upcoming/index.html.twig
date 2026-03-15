@@ -1,0 +1,32 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Coming up · {{ parent() }}{% endblock %}
+
+{% block body %}
+    <div class="page-header">
+        <div>
+            <h1>Coming up</h1>
+            <p class="muted">Care due in the next 7 days.</p>
+        </div>
+    </div>
+
+    {% for day, schedules in days %}
+        <section class="room-group upcoming-day">
+            <h2>{{ day }}</h2>
+            <ul class="list card">
+                {% for schedule in schedules %}
+                    <li>
+                        <span>
+                            <span aria-hidden="true">{{ schedule.type.icon }}</span>
+                            <strong>{{ schedule.type.label }}</strong>
+                            <a href="{{ path('plant_show', {id: schedule.plant.id}) }}">{{ schedule.plant.name }}</a>
+                        </span>
+                        <span class="muted">{{ schedule.plant.room ? schedule.plant.room.name }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
+    {% else %}
+        <p class="empty">Nothing planned for the next week.</p>
+    {% endfor %}
+{% endblock %}
