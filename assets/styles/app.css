@@ -635,3 +635,14 @@ form.inline {
     word-break: break-all;
     user-select: all;
 }
+
+.plant-cover-empty {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--green-600);
+    letter-spacing: .05em;
+}
+
+.next-task {
+    font-size: .875rem;
+}

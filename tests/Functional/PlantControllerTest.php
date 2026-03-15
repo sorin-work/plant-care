@@ -6,6 +6,7 @@ use App\Entity\Species;
 use App\Enum\LightLevel;
 use App\Repository\PlantRepository;
 use App\Tests\Support\Factory;
+use DateTimeImmutable;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 final class PlantControllerTest extends WebTestCase
@@ -198,5 +199,21 @@ final class PlantControllerTest extends WebTestCase
         $crawler = $client->request('GET', '/plants?room=999999');
 
         self::assertCount(1, $crawler->filter('.plant-card'));
+    }
+
+    public function testCardShowsNextTaskAndInitials(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $plant = $this->createPlant($this->createHousehold($user), 'Golden pothos');
+        $this->em()->persist(new \App\Entity\CareSchedule($plant, \App\Enum\CareTaskType::Repot, 540, new DateTimeImmutable('2026-09-01')));
+        $this->em()->persist(new \App\Entity\CareSchedule($plant, \App\Enum\CareTaskType::Water, 7, new DateTimeImmutable('2026-03-20')));
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $client->request('GET', '/plants');
+
+        self::assertSelectorTextContains('.plant-cover-empty', 'GP');
+        self::assertSelectorTextContains('.next-task', 'Water 20 Mar');
     }
 }

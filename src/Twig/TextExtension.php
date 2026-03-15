@@ -2,6 +2,7 @@
 
 namespace App\Twig;
 
+use App\Util\Initials;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFilter;
 
@@ -11,6 +12,7 @@ final class TextExtension extends AbstractExtension
     {
         return [
             new TwigFilter('autolink', $this->autolink(...), ['is_safe' => ['html']]),
+            new TwigFilter('initials', Initials::of(...)),
         ];
     }
 

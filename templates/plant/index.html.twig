@@ -33,7 +33,7 @@
                     {% if plant.coverPhoto %}
                         <img src="{{ path('photo_show', {name: plant.coverPhoto}) }}" alt="" class="plant-cover" loading="lazy">
                     {% else %}
-                        <div class="plant-cover plant-cover-empty" aria-hidden="true">🪴</div>
+                        <div class="plant-cover plant-cover-empty" aria-hidden="true">{{ plant.name|initials }}</div>
                     {% endif %}
                     <h2><a href="{{ path('plant_show', {id: plant.id}) }}">{{ plant.name }}</a></h2>
                     {% if plant.species %}
@@ -43,6 +43,10 @@
                         <span class="tag">{{ plant.room ? plant.room.name : 'No room' }}</span>
                         <span class="tag">{{ plant.light.label }}</span>
                     </p>
+                    {% set next = plant.nextSchedule %}
+                    {% if next %}
+                        <p class="muted next-task">{{ next.type.icon }} {{ next.type.label }} {{ next.nextDueOn|date('j M') }}</p>
+                    {% endif %}
                 </li>
             {% endfor %}
         </ul>

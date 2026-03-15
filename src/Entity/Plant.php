@@ -214,4 +214,19 @@ class Plant
 
         return $this;
     }
+
+    /**
+     * The schedule that comes due first, or null when there are none.
+     */
+    public function nextSchedule(): ?CareSchedule
+    {
+        $next = null;
+        foreach ($this->schedules as $schedule) {
+            if (null === $next || $schedule->getNextDueOn() < $next->getNextDueOn()) {
+                $next = $schedule;
+            }
+        }
+
+        return $next;
+    }
 }
