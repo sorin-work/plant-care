@@ -51,6 +51,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(nullable: true)]
     private ?DateTimeImmutable $apiTokenCreatedAt = null;
 
+    /** Secret part of the calendar feed URL. */
+    #[ORM\Column(length: 32, unique: true, nullable: true)]
+    private ?string $calendarToken = null;
+
     public function __construct()
     {
         $this->createdAt = new DateTimeImmutable();
@@ -163,5 +167,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->apiTokenHash = null;
         $this->apiTokenCreatedAt = null;
+    }
+
+    public function getCalendarToken(): ?string
+    {
+        return $this->calendarToken;
+    }
+
+    public function resetCalendarToken(): string
+    {
+        return $this->calendarToken = bin2hex(random_bytes(16));
     }
 }

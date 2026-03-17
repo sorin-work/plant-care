@@ -64,4 +64,32 @@ class CareScheduleRepository extends ServiceEntityRepository
 
         return $result;
     }
+
+    /**
+     * Schedules of all active plants in the given households.
+     *
+     * @param list<Household> $households
+     *
+     * @return list<CareSchedule>
+     */
+    public function findForHouseholds(array $households): array
+    {
+        if ([] === $households) {
+            return [];
+        }
+
+        /** @var list<CareSchedule> $result */
+        $result = $this->createQueryBuilder('s')
+            ->addSelect('p', 'r')
+            ->join('s.plant', 'p')
+            ->leftJoin('p.room', 'r')
+            ->where('p.household IN (:households)')
+            ->andWhere('p.archivedAt IS NULL')
+            ->setParameter('households', $households)
+            ->orderBy('s.nextDueOn', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        return $result;
+    }
 }
