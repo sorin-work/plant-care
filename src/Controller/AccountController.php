@@ -42,4 +42,16 @@ final class AccountController extends AppController
 
         return $this->redirectToRoute('account');
     }
+
+    #[Route('/calendar', name: 'account_calendar', methods: ['POST'])]
+    public function resetCalendar(Request $request, #[CurrentUser] User $user): Response
+    {
+        $this->assertCsrf('calendar-feed', $request);
+        $hadFeed = null !== $user->getCalendarToken();
+        $user->resetCalendarToken();
+        $this->em->flush();
+        $this->addFlash('success', $hadFeed ? 'Your calendar link was replaced. Update it in your calendar app.' : 'Your calendar link is ready.');
+
+        return $this->redirectToRoute('account');
+    }
 }

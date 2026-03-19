@@ -4,6 +4,21 @@
 
 {% block body %}
     <h1>Account</h1>
+    <div class="stack">
+
+    <section class="card">
+        <h2>Calendar</h2>
+        <p class="muted">Subscribe to your care schedule in Google Calendar, Apple Calendar or Outlook.</p>
+        {% if app.user.calendarToken %}
+            {% set feed = url('calendar_feed', {token: app.user.calendarToken}) %}
+            <code class="token-value">{{ feed }}</code>
+            <p class="help-text">Anyone with this link can see your plants' schedule. Replace it if it leaked.</p>
+        {% endif %}
+        <form method="post" action="{{ path('account_calendar') }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('calendar-feed') }}">
+            <button type="submit" class="btn btn-secondary">{{ app.user.calendarToken ? 'Replace calendar link' : 'Create calendar link' }}</button>
+        </form>
+    </section>
 
     <section class="card">
         <h2>API token</h2>
@@ -31,4 +46,5 @@
             {% endif %}
         </div>
     </section>
+    </div>
 {% endblock %}

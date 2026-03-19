@@ -32,4 +32,25 @@ final class AccountTest extends WebTestCase
         self::assertSelectorTextContains('.flash', 'revoked');
         self::assertNull($this->em()->find(User::class, $user->getId())?->getApiTokenHash());
     }
+
+    public function testCreateAndReplaceCalendarLink(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $this->createHousehold($user);
+        $client->loginUser($user);
+
+        $client->request('GET', '/account');
+        $client->submitForm('Create calendar link');
+        $crawler = $client->followRedirect();
+        $first = $crawler->filter('.token-value')->first()->text();
+        self::assertMatchesRegularExpression('#/calendar/[a-f0-9]{32}\.ics$#', $first);
+
+        $client->submitForm('Replace calendar link');
+        $crawler = $client->followRedirect();
+        self::assertNotSame($first, $crawler->filter('.token-value')->first()->text());
+
+        $client->request('GET', parse_url($first, \PHP_URL_PATH));
+        self::assertResponseStatusCodeSame(404);
+    }
 }
