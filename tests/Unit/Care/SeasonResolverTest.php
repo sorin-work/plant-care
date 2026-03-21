@@ -19,6 +19,10 @@ final class SeasonResolverTest extends TestCase
         yield 'new year' => ['2026-01-01', Season::Winter];
         yield 'mid january' => ['2026-01-15', Season::Winter];
         yield 'first of december' => ['2025-12-01', Season::Winter];
+        yield 'first of february' => ['2026-02-01', Season::Winter];
+        yield 'end of february' => ['2026-02-28', Season::Winter];
+        yield 'leap day' => ['2028-02-29', Season::Winter];
+        yield 'first of march' => ['2026-03-01', Season::Spring];
         yield 'spring equinox' => ['2026-03-20', Season::Spring];
         yield 'end of may' => ['2026-05-31', Season::Spring];
         yield 'first of june' => ['2026-06-01', Season::Summer];
@@ -41,5 +45,10 @@ final class SeasonResolverTest extends TestCase
         self::assertSame(Season::Winter, $resolver->seasonOn(new DateTimeImmutable('2026-07-10'), Hemisphere::South));
         self::assertSame(Season::Autumn, $resolver->seasonOn(new DateTimeImmutable('2026-04-10'), Hemisphere::South));
         self::assertSame(Season::Spring, $resolver->seasonOn(new DateTimeImmutable('2026-10-10'), Hemisphere::South));
+    }
+
+    public function testFebruaryIsSummerInTheSouth(): void
+    {
+        self::assertSame(Season::Summer, (new SeasonResolver())->seasonOn(new DateTimeImmutable('2026-02-14'), Hemisphere::South));
     }
 }

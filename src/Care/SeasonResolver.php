@@ -16,7 +16,7 @@ final class SeasonResolver
         $month = (int) $date->format('n');
 
         $season = match (true) {
-            $month >= 12 || $month < 2 => Season::Winter,
+            $month >= 12 || $month <= 2 => Season::Winter,
             $month < 6 => Season::Spring,
             $month < 9 => Season::Summer,
             default => Season::Autumn,

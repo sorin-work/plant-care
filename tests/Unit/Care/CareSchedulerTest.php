@@ -111,4 +111,12 @@ final class CareSchedulerTest extends TestCase
         self::assertSame('2026-03-20', $schedule->getLastDoneOn()?->format('Y-m-d'));
         self::assertNull($schedule->getSnoozedUntil());
     }
+
+    public function testWateringInFebruaryStillUsesWinterInterval(): void
+    {
+        $schedule = $this->schedule();
+        $this->scheduler->complete($schedule, new DateTimeImmutable('2026-02-10'));
+
+        self::assertSame('2026-02-25', $schedule->getNextDueOn()->format('Y-m-d'));
+    }
 }
