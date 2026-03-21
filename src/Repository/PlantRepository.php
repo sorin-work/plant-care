@@ -21,7 +21,7 @@ class PlantRepository extends ServiceEntityRepository
     /**
      * @return list<Plant>
      */
-    public function findActive(Household $household, ?Room $room = null): array
+    public function findActive(Household $household, ?Room $room = null, ?string $search = null): array
     {
         $qb = $this->createQueryBuilder('p')
             ->where('p.household = :household')
@@ -31,6 +31,13 @@ class PlantRepository extends ServiceEntityRepository
 
         if (null !== $room) {
             $qb->andWhere('p.room = :room')->setParameter('room', $room);
+        }
+
+        $search = trim((string) $search);
+        if ('' !== $search) {
+            $qb->leftJoin('p.species', 'sp')
+                ->andWhere("LOWER(p.name) LIKE :q ESCAPE '!' OR LOWER(sp.commonName) LIKE :q ESCAPE '!' OR LOWER(sp.scientificName) LIKE :q ESCAPE '!'")
+                ->setParameter('q', '%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], mb_strtolower($search)).'%');
         }
 
         /** @var list<Plant> $result */

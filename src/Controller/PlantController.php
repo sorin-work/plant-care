@@ -47,10 +47,13 @@ final class PlantController extends AppController
             }
         }
 
+        $query = $request->query->getString('q');
+
         return $this->render('plant/index.html.twig', [
-            'plants' => $plants->findActive($household, $selected),
+            'plants' => $plants->findActive($household, $selected, $query),
             'rooms' => $allRooms,
             'selected_room' => $selected,
+            'query' => $query,
         ]);
     }
 

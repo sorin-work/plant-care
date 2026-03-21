@@ -22,7 +22,15 @@
         </nav>
     {% endif %}
 
-    {% if plants is empty and selected_room %}
+    <form method="get" class="search plant-search">
+        {% if selected_room %}<input type="hidden" name="room" value="{{ selected_room.id }}">{% endif %}
+        <input type="search" name="q" value="{{ query }}" placeholder="Search by name or species" aria-label="Search plants">
+        <button type="submit" class="btn btn-secondary">Search</button>
+    </form>
+
+    {% if plants is empty and query %}
+        <p class="empty">No plants match “{{ query }}”.</p>
+    {% elseif plants is empty and selected_room %}
         <p class="empty">No plants in {{ selected_room.name }}.</p>
     {% elseif plants is empty %}
         <p class="empty">No plants yet. <a href="{{ path('plant_new') }}">Add your first plant</a>.</p>

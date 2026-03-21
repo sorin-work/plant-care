@@ -216,4 +216,30 @@ final class PlantControllerTest extends WebTestCase
         self::assertSelectorTextContains('.plant-cover-empty', 'GP');
         self::assertSelectorTextContains('.next-task', 'Water 20 Mar');
     }
+
+    public function testSearchByNameOrSpecies(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $household = $this->createHousehold($user);
+        $species = new Species('Snake plant', 'Dracaena trifasciata', 14, LightLevel::Low);
+        $this->em()->persist($species);
+        $this->createPlant($household, 'Sansa')->setSpecies($species);
+        $this->createPlant($household, 'Monty');
+        $this->createPlant($household, '100% cotton');
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $crawler = $client->request('GET', '/plants?q=snake');
+        self::assertSame(['Sansa'], $crawler->filter('.plant-card h2')->each(fn ($n) => $n->text()));
+
+        $crawler = $client->request('GET', '/plants?q=MON');
+        self::assertSame(['Monty'], $crawler->filter('.plant-card h2')->each(fn ($n) => $n->text()));
+
+        $crawler = $client->request('GET', '/plants?q=%25');
+        self::assertSame(['100% cotton'], $crawler->filter('.plant-card h2')->each(fn ($n) => $n->text()));
+
+        $client->request('GET', '/plants?q=cactus');
+        self::assertSelectorTextContains('.empty', 'No plants match');
+    }
 }
