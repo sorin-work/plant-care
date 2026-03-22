@@ -62,4 +62,37 @@ final class UpcomingTest extends WebTestCase
 
         self::assertSelectorTextContains('.empty', 'Nothing planned');
     }
+
+    public function testDaysAreInDateOrder(): void
+    {
+        static::mockTime('2026-03-15 10:00:00');
+        $client = static::createClient();
+        $user = $this->createUser();
+        $household = $this->createHousehold($user);
+        foreach (['2026-03-20', '2026-03-17', '2026-03-16', '2026-03-22'] as $i => $date) {
+            $this->em()->persist(new CareSchedule($this->createPlant($household, 'Plant '.$i), CareTaskType::Water, 7, new DateTimeImmutable($date)));
+        }
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $crawler = $client->request('GET', '/upcoming');
+
+        self::assertSame(['Mon 16 Mar', 'Tue 17 Mar', 'Fri 20 Mar', 'Sun 22 Mar'], $crawler->filter('.upcoming-day h2')->each(fn ($h) => $h->text()));
+    }
+
+    public function testDaysAreInDateOrderAcrossMonthEnd(): void
+    {
+        static::mockTime('2026-03-28 10:00:00');
+        $client = static::createClient();
+        $user = $this->createUser();
+        $household = $this->createHousehold($user);
+        $this->em()->persist(new CareSchedule($this->createPlant($household, 'April'), CareTaskType::Water, 7, new DateTimeImmutable('2026-04-02')));
+        $this->em()->persist(new CareSchedule($this->createPlant($household, 'March'), CareTaskType::Water, 7, new DateTimeImmutable('2026-03-31')));
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $crawler = $client->request('GET', '/upcoming');
+
+        self::assertSame(['Tue 31 Mar', 'Thu 2 Apr'], $crawler->filter('.upcoming-day h2')->each(fn ($h) => $h->text()));
+    }
 }

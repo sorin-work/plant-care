@@ -17,7 +17,7 @@ final class UpcomingPlanner
     }
 
     /**
-     * @return array<string, list<CareSchedule>> day label => schedules due that day
+     * @return list<array{day: DateTimeImmutable, schedules: list<CareSchedule>}> in date order
      */
     public function nextDays(Household $household, DateTimeImmutable $today, int $days = 7): array
     {
@@ -30,11 +30,17 @@ final class UpcomingPlanner
             if ($due <= $today || $due > $until) {
                 continue;
             }
-            $byDay[$due->format('D j M')][] = $schedule;
+            $byDay[$due->format('Y-m-d')][] = $schedule;
         }
 
-        ksort($byDay);
+        // Sort on the ISO date, not on a display label.
+        ksort($byDay, \SORT_STRING);
 
-        return $byDay;
+        $days = [];
+        foreach ($byDay as $date => $schedules) {
+            $days[] = ['day' => new DateTimeImmutable($date), 'schedules' => $schedules];
+        }
+
+        return $days;
     }
 }

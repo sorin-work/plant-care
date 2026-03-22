@@ -10,11 +10,11 @@
         </div>
     </div>
 
-    {% for day, schedules in days %}
+    {% for entry in days %}
         <section class="room-group upcoming-day">
-            <h2>{{ day }}</h2>
+            <h2>{{ entry.day|date('D j M') }}</h2>
             <ul class="list card">
-                {% for schedule in schedules %}
+                {% for schedule in entry.schedules %}
                     <li>
                         <span>
                             <span aria-hidden="true">{{ schedule.type.icon }}</span>
