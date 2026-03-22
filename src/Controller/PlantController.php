@@ -109,6 +109,17 @@ final class PlantController extends AppController
         ]);
     }
 
+    #[Route('/{id}/history', name: 'plant_history', methods: ['GET'], requirements: ['id' => '\d+'])]
+    public function history(Plant $plant, Request $request, CareEventRepository $events): Response
+    {
+        $this->guard(Permission::VIEW, $plant);
+
+        return $this->render('plant/history.html.twig', [
+            'plant' => $plant,
+            'page' => $events->pageForPlant($plant, $request->query->getInt('page', 1)),
+        ]);
+    }
+
     #[Route('/{id}/edit', name: 'plant_edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
     public function edit(Plant $plant, Request $request, PhotoStorage $photos): Response
     {
