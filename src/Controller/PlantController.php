@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Care\PlantSorter;
 use App\Care\ScheduleFactory;
 use App\Entity\JournalEntry;
 use App\Entity\Plant;
@@ -35,7 +36,7 @@ final class PlantController extends AppController
     }
 
     #[Route('', name: 'plant_index', methods: ['GET'])]
-    public function index(Request $request, PlantRepository $plants, RoomRepository $rooms): Response
+    public function index(Request $request, PlantRepository $plants, RoomRepository $rooms, PlantSorter $sorter): Response
     {
         $household = $this->current->get();
         $allRooms = $rooms->findForHousehold($household);
@@ -48,9 +49,13 @@ final class PlantController extends AppController
         }
 
         $query = $request->query->getString('q');
+        $sort = $request->query->getString('sort', PlantSorter::NAME);
+        $sort = \array_key_exists($sort, PlantSorter::ALL) ? $sort : PlantSorter::NAME;
 
         return $this->render('plant/index.html.twig', [
-            'plants' => $plants->findActive($household, $selected, $query),
+            'plants' => $sorter->sort($plants->findActive($household, $selected, $query), $sort),
+            'sort' => $sort,
+            'sorts' => PlantSorter::ALL,
             'rooms' => $allRooms,
             'selected_room' => $selected,
             'query' => $query,

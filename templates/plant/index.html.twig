@@ -25,6 +25,11 @@
     <form method="get" class="search plant-search">
         {% if selected_room %}<input type="hidden" name="room" value="{{ selected_room.id }}">{% endif %}
         <input type="search" name="q" value="{{ query }}" placeholder="Search by name or species" aria-label="Search plants">
+        <select name="sort" aria-label="Sort plants" onchange="this.form.requestSubmit()">
+            {% for key, label in sorts %}
+                <option value="{{ key }}" {{ key == sort ? 'selected' }}>{{ label }}</option>
+            {% endfor %}
+        </select>
         <button type="submit" class="btn btn-secondary">Search</button>
     </form>
 
