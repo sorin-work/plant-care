@@ -34,6 +34,9 @@ security:
             remember_me:
                 secret: '%kernel.secret%'
                 lifetime: 2592000
+            login_throttling:
+                max_attempts: 5
+                interval: '15 minutes'
 
     access_control:
         - { path: ^/(login|register|health)$, roles: PUBLIC_ACCESS }

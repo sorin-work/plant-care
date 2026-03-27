@@ -3,11 +3,24 @@
 namespace App\Tests\Functional;
 
 use App\Tests\Support\Factory;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 final class LoginTest extends WebTestCase
 {
     use Factory;
+
+    /**
+     * A client with a clean login rate limiter, failed attempts are counted
+     * in the cache across requests.
+     */
+    private function client(): KernelBrowser
+    {
+        $client = static::createClient();
+        static::getContainer()->get('cache.rate_limiter')->clear();
+
+        return $client;
+    }
 
     public function testUserCanSignInAndOut(): void
     {
@@ -31,7 +44,7 @@ final class LoginTest extends WebTestCase
 
     public function testWrongPasswordShowsError(): void
     {
-        $client = static::createClient();
+        $client = $this->client();
         $this->createUser('ion@example.com', 'Ion');
 
         $client->request('GET', '/login');
@@ -39,5 +52,19 @@ final class LoginTest extends WebTestCase
         $client->followRedirect();
 
         self::assertSelectorTextContains('.flash-error', 'Invalid credentials');
+    }
+
+    public function testTooManyFailedAttemptsAreThrottled(): void
+    {
+        $client = $this->client();
+        $this->createUser('ion@example.com', 'Ion');
+
+        for ($i = 0; $i < 6; ++$i) {
+            $client->request('GET', '/login');
+            $client->submitForm('Sign in', ['email' => 'ion@example.com', 'password' => 'wrong-'.$i]);
+        }
+        $client->followRedirect();
+
+        self::assertSelectorTextContains('.flash-error', 'Too many failed login attempts');
     }
 }
