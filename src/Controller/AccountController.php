@@ -3,9 +3,12 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Form\ChangePasswordType;
+use App\Form\ProfileType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
@@ -16,10 +19,38 @@ final class AccountController extends AppController
     {
     }
 
-    #[Route('', name: 'account', methods: ['GET'])]
-    public function index(): Response
+    #[Route('', name: 'account', methods: ['GET', 'POST'])]
+    public function index(Request $request, #[CurrentUser] User $user, UserPasswordHasherInterface $hasher): Response
     {
-        return $this->render('account/index.html.twig');
+        $profile = $this->createForm(ProfileType::class, $user);
+        $profile->handleRequest($request);
+        if ($profile->isSubmitted() && $profile->isValid()) {
+            $this->em->flush();
+            $this->addFlash('success', 'Profile saved.');
+
+            return $this->redirectToRoute('account');
+        }
+
+        $password = $this->createForm(ChangePasswordType::class);
+        $password->handleRequest($request);
+        if ($password->isSubmitted() && $password->isValid()) {
+            /** @var array{current: string, password: string} $data */
+            $data = $password->getData();
+            $user->setPassword($hasher->hashPassword($user, $data['password']));
+            $this->em->flush();
+            $this->addFlash('success', 'Your password was changed.');
+
+            return $this->redirectToRoute('account');
+        }
+
+        if ($profile->isSubmitted() || $password->isSubmitted()) {
+            $this->em->refresh($user);
+        }
+
+        return $this->render('account/index.html.twig', [
+            'profile' => $profile,
+            'password' => $password,
+        ], new Response(status: $profile->isSubmitted() || $password->isSubmitted() ? 422 : 200));
     }
 
     #[Route('/api-token', name: 'account_token', methods: ['POST'])]
@@ -29,7 +60,11 @@ final class AccountController extends AppController
         $token = $user->generateApiToken();
         $this->em->flush();
 
-        return $this->render('account/index.html.twig', ['new_token' => $token]);
+        return $this->render('account/index.html.twig', [
+            'new_token' => $token,
+            'profile' => $this->createForm(ProfileType::class, $user),
+            'password' => $this->createForm(ChangePasswordType::class),
+        ]);
     }
 
     #[Route('/api-token/revoke', name: 'account_token_revoke', methods: ['POST'])]

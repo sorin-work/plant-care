@@ -53,4 +53,59 @@ final class AccountTest extends WebTestCase
         $client->request('GET', parse_url($first, \PHP_URL_PATH));
         self::assertResponseStatusCodeSame(404);
     }
+
+    public function testChangeDisplayName(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser(name: 'Old');
+        $this->createHousehold($user);
+        $client->loginUser($user);
+
+        $client->request('GET', '/account');
+        $client->submitForm('Save profile', ['profile[displayName]' => 'New Name']);
+        $client->followRedirect();
+
+        self::assertSelectorTextContains('.site-nav', 'New Name');
+    }
+
+    public function testChangePassword(): void
+    {
+        $client = static::createClient();
+        $hasher = static::getContainer()->get('security.user_password_hasher');
+        $user = $this->createUser();
+        $user->setPassword($hasher->hashPassword($user, 'old-password'));
+        $this->createHousehold($user);
+        $client->loginUser($user);
+
+        $client->request('GET', '/account');
+        $client->submitForm('Change password', [
+            'change_password[current]' => 'old-password',
+            'change_password[password][first]' => 'new-password-1',
+            'change_password[password][second]' => 'new-password-1',
+        ]);
+        self::assertResponseRedirects('/account');
+
+        $reloaded = $this->em()->find(User::class, $user->getId());
+        self::assertTrue($hasher->isPasswordValid($reloaded, 'new-password-1'));
+    }
+
+    public function testWrongCurrentPasswordIsRejected(): void
+    {
+        $client = static::createClient();
+        $hasher = static::getContainer()->get('security.user_password_hasher');
+        $user = $this->createUser();
+        $user->setPassword($hasher->hashPassword($user, 'old-password'));
+        $this->createHousehold($user);
+        $client->loginUser($user);
+
+        $client->request('GET', '/account');
+        $client->submitForm('Change password', [
+            'change_password[current]' => 'guess',
+            'change_password[password][first]' => 'new-password-1',
+            'change_password[password][second]' => 'new-password-1',
+        ]);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('form[name=change_password]', 'not your current password');
+    }
 }

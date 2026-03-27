@@ -5,6 +5,25 @@
 {% block body %}
     <h1>Account</h1>
     <div class="stack">
+    <div class="grid-fields">
+        <section class="card">
+            <h2>Profile</h2>
+            {{ form_start(profile) }}
+                {{ form_row(profile.displayName) }}
+                <p class="muted">Signed in as {{ app.user.email }}</p>
+                <button type="submit" class="btn">Save profile</button>
+            {{ form_end(profile) }}
+        </section>
+        <section class="card">
+            <h2>Password</h2>
+            {{ form_start(password) }}
+                {{ form_row(password.current) }}
+                {{ form_row(password.password.first) }}
+                {{ form_row(password.password.second) }}
+                <button type="submit" class="btn">Change password</button>
+            {{ form_end(password) }}
+        </section>
+    </div>
 
     <section class="card">
         <h2>Calendar</h2>
