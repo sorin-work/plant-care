@@ -12,9 +12,50 @@
     --amber-600: #b54708;
     --radius: 10px;
     --shadow: 0 1px 2px rgb(0 0 0 / 6%), 0 1px 6px rgb(0 0 0 / 4%);
+    --surface: #fff;
+    color-scheme: light dark;
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     color: var(--gray-800);
     background: var(--sand-50);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --green-50: #1d2b21;
+        --green-100: #27412f;
+        --green-600: #3f9a5e;
+        --green-700: #5fb87c;
+        --green-900: #c9ebd3;
+        --sand-50: #121512;
+        --gray-200: #2f3530;
+        --gray-500: #9aa39b;
+        --gray-800: #e4e7e3;
+        --red-600: #ff8a80;
+        --amber-600: #ffb74d;
+        --surface: #1a1f1b;
+        --shadow: 0 1px 2px rgb(0 0 0 / 40%);
+    }
+
+    .site-header {
+        background: #0c140e;
+    }
+
+    .btn {
+        color: #0c140e;
+    }
+
+    .btn-secondary {
+        color: var(--green-700);
+    }
+
+    .flash-error,
+    .badge-late {
+        background: #3b1d1b;
+    }
+
+    .notice {
+        background: #3a2a12;
+    }
 }
 
 * {
@@ -84,7 +125,7 @@ main {
 }
 
 .btn-secondary {
-    background: #fff;
+    background: var(--surface);
     color: var(--green-700);
 }
 
@@ -93,7 +134,7 @@ main {
 }
 
 .card {
-    background: #fff;
+    background: var(--surface);
     border: 1px solid var(--gray-200);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
@@ -157,7 +198,7 @@ textarea {
     border: 1px solid var(--gray-200);
     border-radius: 8px;
     font: inherit;
-    background: #fff;
+    background: var(--surface);
 }
 
 input:focus,
@@ -232,7 +273,7 @@ form ul {
 .table {
     width: 100%;
     border-collapse: collapse;
-    background: #fff;
+    background: var(--surface);
     border-radius: var(--radius);
     overflow: hidden;
     box-shadow: var(--shadow);
@@ -257,7 +298,7 @@ form ul {
     padding: 2rem;
     text-align: center;
     color: var(--gray-500);
-    background: #fff;
+    background: var(--surface);
     border: 1px dashed var(--gray-200);
     border-radius: var(--radius);
 }
@@ -409,7 +450,7 @@ form.inline {
     padding: .2rem .75rem;
     border: 1px solid var(--gray-200);
     border-radius: 999px;
-    background: #fff;
+    background: var(--surface);
     text-decoration: none;
     font-size: .9rem;
 }
@@ -479,7 +520,7 @@ form.inline {
     min-width: 8rem;
     margin-top: .25rem;
     padding: .25rem 0;
-    background: #fff;
+    background: var(--surface);
     border: 1px solid var(--gray-200);
     border-radius: 8px;
     box-shadow: var(--shadow);
@@ -630,7 +671,7 @@ form.inline {
 .token-value {
     display: block;
     padding: .5rem;
-    background: #fff;
+    background: var(--surface);
     border-radius: 6px;
     word-break: break-all;
     user-select: all;
