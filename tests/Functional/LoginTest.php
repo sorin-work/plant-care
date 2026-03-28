@@ -24,7 +24,7 @@ final class LoginTest extends WebTestCase
 
     public function testUserCanSignInAndOut(): void
     {
-        $client = static::createClient();
+        $client = $this->client();
         $hasher = static::getContainer()->get('security.user_password_hasher');
         $user = $this->createUser('ion@example.com', 'Ion');
         $user->setPassword($hasher->hashPassword($user, 'pothos-forever'));

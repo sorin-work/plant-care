@@ -1,0 +1,12 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Something went wrong · Plant care{% endblock %}
+
+{% block body %}
+    <section class="card narrow error-page">
+        <p class="error-code">{{ status_code }}</p>
+        <h1>Something went wrong</h1>
+        <p>We could not complete your request. Please try again in a moment.</p>
+        <p><a href="{{ path('home') }}" class="btn">Back to today</a></p>
+    </section>
+{% endblock %}

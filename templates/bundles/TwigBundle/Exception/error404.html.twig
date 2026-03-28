@@ -1,0 +1,12 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Not found · Plant care{% endblock %}
+
+{% block body %}
+    <section class="card narrow error-page">
+        <p class="error-code">404</p>
+        <h1>This page has wilted</h1>
+        <p>The plant, room or page you are looking for does not exist, or it belongs to a household you are not part of.</p>
+        <p><a href="{{ path('home') }}" class="btn">Back to today</a></p>
+    </section>
+{% endblock %}

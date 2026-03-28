@@ -1,0 +1,12 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Not allowed · Plant care{% endblock %}
+
+{% block body %}
+    <section class="card narrow error-page">
+        <p class="error-code">403</p>
+        <h1>You can't do that here</h1>
+        <p>Your role in this household doesn't allow it. Ask an owner if you need more access.</p>
+        <p><a href="{{ path('home') }}" class="btn">Back to today</a></p>
+    </section>
+{% endblock %}

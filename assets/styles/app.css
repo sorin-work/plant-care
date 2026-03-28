@@ -654,3 +654,14 @@ form.inline {
 .plant-search select {
     width: auto;
 }
+
+.error-page {
+    text-align: center;
+}
+
+.error-code {
+    margin: 0;
+    font-size: 3rem;
+    font-weight: 800;
+    color: var(--green-100);
+}
