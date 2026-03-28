@@ -665,3 +665,44 @@ form.inline {
     font-weight: 800;
     color: var(--green-100);
 }
+
+.main-nav a[aria-current="page"] {
+    text-decoration: underline;
+    text-underline-offset: .35rem;
+}
+
+.menu-toggle {
+    display: none;
+    margin-left: auto;
+    border: 0;
+    background: none;
+    color: #fff;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+@media (max-width: 860px) {
+    .site-header .container {
+        flex-wrap: wrap;
+        gap: .5rem 1rem;
+    }
+
+    .menu-toggle {
+        display: block;
+    }
+
+    .main-nav,
+    .site-nav {
+        display: none;
+        flex-basis: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+        margin: 0;
+        padding-bottom: .75rem;
+    }
+
+    .site-header.is-open .main-nav,
+    .site-header.is-open .site-nav {
+        display: flex;
+    }
+}

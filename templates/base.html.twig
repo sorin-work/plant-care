@@ -11,20 +11,22 @@
         {% endblock %}
     </head>
     <body>
-        <header class="site-header">
+        <header class="site-header" data-controller="menu">
             <div class="container">
                 <a class="brand" href="{{ path('home') }}">Plant care</a>
+                <button type="button" class="menu-toggle" aria-label="Menu" aria-expanded="false" data-menu-target="toggle" data-action="menu#toggle">&#9776;</button>
                 {% if app.user %}
-                    <nav class="main-nav">
-                        <a href="{{ path('home') }}">Today</a>
-                        <a href="{{ path('upcoming') }}">Coming up</a>
-                        <a href="{{ path('plant_index') }}">Plants</a>
-                        <a href="{{ path('room_index') }}">Rooms</a>
-                        <a href="{{ path('species_index') }}">Species</a>
-                        <a href="{{ path('household_members') }}">Members</a>
+                    <nav class="main-nav" data-menu-target="panel">
+                        {% set route = app.request.attributes.get('_route') %}
+                        <a href="{{ path('home') }}" {{ route == 'home' ? 'aria-current="page"' }}>Today</a>
+                        <a href="{{ path('upcoming') }}" {{ route == 'upcoming' ? 'aria-current="page"' }}>Coming up</a>
+                        <a href="{{ path('plant_index') }}" {{ route starts with 'plant_' ? 'aria-current="page"' }}>Plants</a>
+                        <a href="{{ path('room_index') }}" {{ route starts with 'room_' ? 'aria-current="page"' }}>Rooms</a>
+                        <a href="{{ path('species_index') }}" {{ route starts with 'species_' ? 'aria-current="page"' }}>Species</a>
+                        <a href="{{ path('household_members') }}" {{ route == 'household_members' ? 'aria-current="page"' }}>Members</a>
                     </nav>
                 {% endif %}
-                <nav class="site-nav">
+                <nav class="site-nav" data-menu-target="panel">
                     {% if app.user %}
                         {% set households = my_households() %}
                         {% if households|length > 1 %}
