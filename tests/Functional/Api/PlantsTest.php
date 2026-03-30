@@ -90,4 +90,19 @@ final class PlantsTest extends WebTestCase
         self::assertResponseStatusCodeSame(403);
         self::assertSame(['error' => 'You are not allowed to do this.'], json_decode((string) $client->getResponse()->getContent(), true));
     }
+
+    public function testNamesWithNonAsciiFirstLetter(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $household = $this->createHousehold($user);
+        $this->createPlant($household, 'Ölbaum');
+        $this->createPlant($household, '🌵 Spike');
+
+        $client->request('GET', '/api/plants', server: $this->apiHeaders($user));
+
+        self::assertResponseIsSuccessful();
+        $initials = array_column(json_decode((string) $client->getResponse()->getContent(), true)['plants'], 'initials', 'name');
+        self::assertSame(['Ölbaum' => 'Ö', '🌵 Spike' => '🌵S'], $initials);
+    }
 }

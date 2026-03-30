@@ -19,6 +19,11 @@ final class InitialsTest extends TestCase
         yield 'dashes' => ['bird-of-paradise', 'BO'];
         yield 'extra spaces' => ['  fig   tree ', 'FT'];
         yield 'empty' => ['', '?'];
+        yield 'umlaut' => ['Ölbaum', 'Ö'];
+        yield 'lowercase accent' => ['éva fern', 'ÉF'];
+        yield 'emoji' => ['🌵 Spike', '🌵S'];
+        yield 'emoji with modifier' => ['👍🏽 plant', '👍🏽P'];
+        yield 'cyrillic' => ['фикус бенджамина', 'ФБ'];
     }
 
     #[DataProvider('names')]
