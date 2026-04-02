@@ -17,6 +17,9 @@ final class PageTest extends TestCase
         yield 'fewer than a page' => [7, 10, 1];
         yield 'exactly one page' => [10, 10, 1];
         yield 'exactly two pages' => [20, 10, 2];
+        yield 'one more than a page' => [11, 10, 2];
+        yield 'partial last page' => [25, 10, 3];
+        yield 'single item' => [1, 25, 1];
     }
 
     #[DataProvider('counts')]

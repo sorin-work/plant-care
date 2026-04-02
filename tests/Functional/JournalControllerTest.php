@@ -184,4 +184,20 @@ final class JournalControllerTest extends WebTestCase
         self::assertStringContainsString('&lt;img src=x onerror=alert(1)&gt;<br />', (string) $client->getResponse()->getContent());
         self::assertSelectorExists('.journal-entry a[href="https://example.com"]');
     }
+
+    public function testLastPartialPageIsReachable(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $plant = $this->createPlant($this->createHousehold($user));
+        $this->addEntries($plant, 25);
+        $client->loginUser($user);
+
+        $client->request('GET', '/plants/'.$plant->getId().'/journal?page=2');
+        self::assertSelectorTextContains('.pager', 'Page 2 of 3');
+
+        $crawler = $client->clickLink('Older →');
+        self::assertCount(5, $crawler->filter('.journal-entry'));
+        self::assertSame('Entry 1', $crawler->filter('.journal-entry p')->last()->text());
+    }
 }

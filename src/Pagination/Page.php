@@ -41,7 +41,7 @@ final class Page
 
     public static function countPages(int $total, int $perPage): int
     {
-        return max(1, intdiv($total, $perPage));
+        return max(1, intdiv($total + $perPage - 1, $perPage));
     }
 
     public static function clamp(int $requested, int $pageCount): int
