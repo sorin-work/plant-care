@@ -1,5 +1,6 @@
-{{ form_start(form) }}
+{{ form_start(form, {attr: {'data-controller': 'species-defaults'}}) }}
     {{ form_row(form.name) }}
+    <p class="notice species-hint" data-species-defaults-target="hint" hidden></p>
     <div class="grid-fields">
         {{ form_row(form.species) }}
         {{ form_row(form.room) }}

@@ -242,4 +242,21 @@ final class PlantControllerTest extends WebTestCase
         $client->request('GET', '/plants?q=cactus');
         self::assertSelectorTextContains('.empty', 'No plants match');
     }
+
+    public function testSpeciesOptionsCarryCareHints(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $this->createHousehold($user);
+        $species = (new Species('Peace lily', 'Spathiphyllum wallisii', 5, LightLevel::Medium))->setToxicToPets(true);
+        $this->em()->persist($species);
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $crawler = $client->request('GET', '/plants/new');
+        $option = $crawler->filter('#plant_species option[value="'.$species->getId().'"]');
+
+        self::assertSame('medium', $option->attr('data-light'));
+        self::assertStringContainsString('Water about every 5 days, toxic to pets.', (string) $option->attr('data-hint'));
+    }
 }

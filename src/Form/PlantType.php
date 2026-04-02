@@ -39,6 +39,16 @@ final class PlantType extends AbstractType
                 'required' => false,
                 'placeholder' => 'Not sure / other',
                 'choice_label' => fn (Species $s): string => (string) $s,
+                'choice_attr' => fn (Species $s): array => [
+                    'data-light' => $s->getLight()->value,
+                    'data-hint' => \sprintf(
+                        'Water about every %d days%s. %s',
+                        $s->getWaterIntervalDays(),
+                        $s->isToxicToPets() ? ', toxic to pets' : '',
+                        $s->getCareNotes() ?? '',
+                    ),
+                ],
+                'attr' => ['data-species-defaults-target' => 'species', 'data-action' => 'species-defaults#apply'],
                 'query_builder' => fn (EntityRepository $r): QueryBuilder => $r->createQueryBuilder('s')->orderBy('s.commonName', 'ASC'),
             ])
             ->add('room', EntityType::class, [
@@ -55,6 +65,7 @@ final class PlantType extends AbstractType
                 'class' => LightLevel::class,
                 'label' => 'Light where it stands',
                 'choice_label' => fn (LightLevel $l): string => $l->label(),
+                'attr' => ['data-species-defaults-target' => 'light', 'data-action' => 'species-defaults#touch'],
             ])
             ->add('acquiredOn', DateType::class, [
                 'label' => 'Since',
