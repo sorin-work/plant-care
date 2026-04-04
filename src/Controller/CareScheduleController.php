@@ -30,7 +30,12 @@ final class CareScheduleController extends AppController
             }
         }
 
-        $schedule = new CareSchedule($plant, $type, CareTaskType::Water === $type ? 7 : 30, $clock->today($plant->getHousehold()));
+        $schedule = new CareSchedule($plant, $type, match ($type) {
+            CareTaskType::Water => 7,
+            CareTaskType::Mist => 3,
+            CareTaskType::Repot => 540,
+            CareTaskType::Fertilize => 30,
+        }, $clock->today($plant->getHousehold()));
         $plant->removeSchedule($schedule);
 
         return $this->handle($schedule, $request, 'schedule/new.html.twig');

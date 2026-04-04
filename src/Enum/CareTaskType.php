@@ -7,6 +7,7 @@ enum CareTaskType: string
     case Water = 'water';
     case Fertilize = 'fertilize';
     case Repot = 'repot';
+    case Mist = 'mist';
 
     public function label(): string
     {
@@ -14,6 +15,7 @@ enum CareTaskType: string
             self::Water => 'Water',
             self::Fertilize => 'Fertilize',
             self::Repot => 'Repot',
+            self::Mist => 'Mist',
         };
     }
 
@@ -23,6 +25,7 @@ enum CareTaskType: string
             self::Water => '💧',
             self::Fertilize => '🌱',
             self::Repot => '🪴',
+            self::Mist => '💦',
         };
     }
 }

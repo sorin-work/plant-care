@@ -21,6 +21,8 @@ final class SeasonalIntervalCalculator
         'water' => ['winter' => 1.5, 'spring' => 1.0, 'summer' => 0.75, 'autumn' => 1.2],
         'fertilize' => ['winter' => 2.0, 'spring' => 1.0, 'summer' => 1.0, 'autumn' => 1.5],
         'repot' => ['winter' => 1.0, 'spring' => 1.0, 'summer' => 1.0, 'autumn' => 1.0],
+        // Heated rooms are dry in winter, so humidity lovers want misting more often.
+        'mist' => ['winter' => 0.5, 'spring' => 1.0, 'summer' => 1.0, 'autumn' => 1.0],
     ];
 
     public function factor(CareTaskType $type, Season $season): float

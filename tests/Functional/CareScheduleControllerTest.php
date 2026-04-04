@@ -101,4 +101,20 @@ final class CareScheduleControllerTest extends WebTestCase
         self::assertSelectorTextContains('.schedules', 'snoozed until 12 Jan');
         self::assertSelectorTextContains('.schedules', 'last done 3 Jan');
     }
+
+    public function testAddMistingReminders(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $plant = $this->createPlant($this->createHousehold($user), 'Calathea');
+        $client->loginUser($user);
+
+        $client->request('GET', '/plants/'.$plant->getId());
+        $client->clickLink('+ Mist reminders');
+        self::assertInputValueSame('care_schedule[intervalDays]', '3');
+        $client->submitForm('Save');
+        $client->followRedirect();
+
+        self::assertSelectorTextContains('.schedules', 'Mist');
+    }
 }
