@@ -9,6 +9,7 @@
             {{ form_row(form.name) }}
             {{ form_row(form.timezone) }}
             {{ form_row(form.hemisphere) }}
+            <div class="checkbox">{{ form_row(form.pauseFertilizingInWinter) }}</div>
             <button type="submit" class="btn">Save</button>
         {{ form_end(form) }}
     </section>

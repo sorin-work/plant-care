@@ -30,6 +30,9 @@ class Household
     #[ORM\Column(length: 8, enumType: Hemisphere::class)]
     private Hemisphere $hemisphere = Hemisphere::North;
 
+    #[ORM\Column(options: ['default' => false])]
+    private bool $pauseFertilizingInWinter = false;
+
     #[ORM\Column]
     private DateTimeImmutable $createdAt;
 
@@ -110,6 +113,18 @@ class Household
     public function removeMembership(Membership $membership): static
     {
         $this->memberships->removeElement($membership);
+
+        return $this;
+    }
+
+    public function isPauseFertilizingInWinter(): bool
+    {
+        return $this->pauseFertilizingInWinter;
+    }
+
+    public function setPauseFertilizingInWinter(bool $pause): static
+    {
+        $this->pauseFertilizingInWinter = $pause;
 
         return $this;
     }

@@ -3,6 +3,9 @@
 namespace App\Care;
 
 use App\Entity\CareSchedule;
+use App\Enum\CareTaskType;
+use App\Enum\Hemisphere;
+use App\Enum\Season;
 use DateTimeImmutable;
 use InvalidArgumentException;
 
@@ -35,7 +38,32 @@ final class CareScheduler
 
     public function nextDueAfter(CareSchedule $schedule, DateTimeImmutable $day): DateTimeImmutable
     {
-        return $day->setTime(0, 0)->modify(\sprintf('+%d days', $this->intervalOn($schedule, $day)));
+        $next = $day->setTime(0, 0)->modify(\sprintf('+%d days', $this->intervalOn($schedule, $day)));
+
+        $household = $schedule->getPlant()->getHousehold();
+        if (CareTaskType::Fertilize === $schedule->getType() && $schedule->isSeasonal() && $household->isPauseFertilizingInWinter()) {
+            $next = $this->skipWinter($next, $household->getHemisphere());
+        }
+
+        return $next;
+    }
+
+    /**
+     * Moves a date that falls in winter to the first day of spring.
+     */
+    private function skipWinter(DateTimeImmutable $date, Hemisphere $hemisphere): DateTimeImmutable
+    {
+        if (Season::Winter !== $this->seasons->seasonOn($date, $hemisphere)) {
+            return $date;
+        }
+
+        $springMonth = Hemisphere::North === $hemisphere ? 3 : 9;
+        $year = (int) $date->format('Y');
+        if ((int) $date->format('n') > $springMonth) {
+            ++$year;
+        }
+
+        return $date->setDate($year, $springMonth, 1);
     }
 
     public function complete(CareSchedule $schedule, DateTimeImmutable $day): void

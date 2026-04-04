@@ -119,4 +119,38 @@ final class CareSchedulerTest extends TestCase
 
         self::assertSame('2026-02-25', $schedule->getNextDueOn()->format('Y-m-d'));
     }
+
+    public function testFertilizingIsPausedInWinter(): void
+    {
+        $schedule = $this->schedule(CareTaskType::Fertilize, 30);
+        $schedule->getPlant()->getHousehold()->setPauseFertilizingInWinter(true);
+
+        $this->scheduler->complete($schedule, new DateTimeImmutable('2026-11-20'));
+
+        self::assertSame('2027-03-01', $schedule->getNextDueOn()->format('Y-m-d'));
+    }
+
+    public function testWinterPauseInJanuaryMovesToMarchSameYear(): void
+    {
+        $schedule = $this->schedule(CareTaskType::Fertilize, 14)->setSeasonal(true);
+        $schedule->getPlant()->getHousehold()->setPauseFertilizingInWinter(true);
+
+        self::assertSame('2027-03-01', $this->scheduler->nextDueAfter($schedule, new DateTimeImmutable('2027-01-05'))->format('Y-m-d'));
+    }
+
+    public function testWinterPauseInTheSouthMovesToSeptember(): void
+    {
+        $schedule = $this->schedule(CareTaskType::Fertilize, 30, Hemisphere::South);
+        $schedule->getPlant()->getHousehold()->setPauseFertilizingInWinter(true);
+
+        self::assertSame('2026-09-01', $this->scheduler->nextDueAfter($schedule, new DateTimeImmutable('2026-06-10'))->format('Y-m-d'));
+    }
+
+    public function testWinterPauseDoesNotAffectWatering(): void
+    {
+        $schedule = $this->schedule(CareTaskType::Water, 10);
+        $schedule->getPlant()->getHousehold()->setPauseFertilizingInWinter(true);
+
+        self::assertSame('2026-12-16', $this->scheduler->nextDueAfter($schedule, new DateTimeImmutable('2026-12-01'))->format('Y-m-d'));
+    }
 }

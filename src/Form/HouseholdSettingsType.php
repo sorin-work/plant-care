@@ -5,6 +5,7 @@ namespace App\Form;
 use App\Entity\Household;
 use App\Enum\Hemisphere;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TimezoneType;
@@ -27,6 +28,11 @@ final class HouseholdSettingsType extends AbstractType
                 'class' => Hemisphere::class,
                 'choice_label' => fn (Hemisphere $h): string => $h->label(),
                 'help' => 'Seasons are flipped in the southern hemisphere.',
+            ])
+            ->add('pauseFertilizingInWinter', CheckboxType::class, [
+                'label' => 'Pause fertilizing in winter',
+                'required' => false,
+                'help' => 'Fertilizer reminders that would fall in winter move to the first day of spring.',
             ]);
     }
 
