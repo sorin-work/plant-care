@@ -3,8 +3,10 @@
 namespace App\Repository;
 
 use App\Entity\CareEvent;
+use App\Entity\Household;
 use App\Entity\Plant;
 use App\Pagination\Page;
+use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -41,6 +43,27 @@ class CareEventRepository extends ServiceEntityRepository
 
         /** @var Page<CareEvent> $result */
         $result = Page::fromQuery($qb, $page, $perPage);
+
+        return $result;
+    }
+
+    /**
+     * @return list<CareEvent>
+     */
+    public function findForHouseholdBetween(Household $household, DateTimeImmutable $from, DateTimeImmutable $to): array
+    {
+        /** @var list<CareEvent> $result */
+        $result = $this->createQueryBuilder('e')
+            ->addSelect('p')
+            ->join('e.plant', 'p')
+            ->where('p.household = :household')
+            ->andWhere('e.happenedOn >= :from AND e.happenedOn <= :to')
+            ->setParameter('household', $household)
+            ->setParameter('from', $from->format('Y-m-d'))
+            ->setParameter('to', $to->format('Y-m-d'))
+            ->orderBy('e.happenedOn', 'ASC')
+            ->getQuery()
+            ->getResult();
 
         return $result;
     }

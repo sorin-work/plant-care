@@ -747,3 +747,31 @@ form.inline {
         display: flex;
     }
 }
+
+.bars {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.bars li {
+    display: grid;
+    grid-template-columns: 4.5rem 1fr 2rem;
+    gap: .5rem;
+    align-items: center;
+    margin: .35rem 0;
+}
+
+.bar {
+    height: .9rem;
+    width: var(--value);
+    min-width: 2px;
+    border-radius: 4px;
+    background: var(--green-600);
+}
+
+.bar-label,
+.bar-value {
+    font-size: .85rem;
+    color: var(--gray-500);
+}

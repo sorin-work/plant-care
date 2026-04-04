@@ -24,6 +24,7 @@
                         <a href="{{ path('room_index') }}" {{ route starts with 'room_' ? 'aria-current="page"' }}>Rooms</a>
                         <a href="{{ path('species_index') }}" {{ route starts with 'species_' ? 'aria-current="page"' }}>Species</a>
                         <a href="{{ path('household_members') }}" {{ route == 'household_members' ? 'aria-current="page"' }}>Members</a>
+                        <a href="{{ path('stats') }}" {{ route == 'stats' ? 'aria-current="page"' }}>Stats</a>
                     </nav>
                 {% endif %}
                 <nav class="site-nav" data-menu-target="panel">

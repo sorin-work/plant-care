@@ -1,0 +1,51 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Stats · {{ parent() }}{% endblock %}
+
+{% block body %}
+    <div class="page-header">
+        <div>
+            <h1>Stats</h1>
+            <p class="muted">The last {{ weeks|length }} weeks of care in {{ current_household().name }}.</p>
+        </div>
+    </div>
+
+    {% if total == 0 %}
+        <p class="empty">No care logged in the last weeks yet.</p>
+    {% else %}
+        <div class="grid-2">
+            <section class="card">
+                <h2>Care per week</h2>
+                <ol class="bars">
+                    {% for week in weeks %}
+                        <li>
+                            <span class="bar-label">{{ week.start|date('j M') }}</span>
+                            <span class="bar" style="--value: {{ (week.done / max * 100)|round }}%"></span>
+                            <span class="bar-value">{{ week.done }}</span>
+                        </li>
+                    {% endfor %}
+                </ol>
+            </section>
+            <aside class="stack">
+                <section class="card">
+                    <h2>By task</h2>
+                    <dl class="facts stats-by-type">
+                        {% for type, counts in byType %}
+                            {% set t = enum('App\\Enum\\CareTaskType').from(type) %}
+                            <dt>{{ t.icon }} {{ t.label }}</dt>
+                            <dd>{{ counts.done }} done{{ counts.skipped ? ', ' ~ counts.skipped ~ ' skipped' }}</dd>
+                        {% endfor %}
+                    </dl>
+                </section>
+                <section class="card">
+                    <h2>Most cared for</h2>
+                    <ol class="top-plants">
+                        {% for plant in topPlants %}
+                            <li><a href="{{ path('plant_show', {id: plant.id}) }}">{{ plant.name }}</a> <span class="muted">({{ plant.done }})</span></li>
+                        {% endfor %}
+                    </ol>
+                </section>
+            </aside>
+        </div>
+    {% endif %}
+{% endblock %}
