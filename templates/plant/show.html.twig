@@ -25,6 +25,10 @@
                 </form>
             {% else %}
                 <a href="{{ path('plant_edit', {id: plant.id}) }}" class="btn btn-secondary">Edit</a>
+                <form method="post" action="{{ path('plant_propagate', {id: plant.id}) }}" class="inline">
+                    <input type="hidden" name="_token" value="{{ csrf_token('propagate-plant-' ~ plant.id) }}">
+                    <button type="submit" class="btn btn-secondary" title="Create a new plant from a cutting or offset">Propagate</button>
+                </form>
                 <form method="post" action="{{ path('plant_archive', {id: plant.id}) }}" class="inline">
                     <input type="hidden" name="_token" value="{{ csrf_token('archive-plant-' ~ plant.id) }}">
                     <button type="submit" class="btn btn-secondary">Archive</button>

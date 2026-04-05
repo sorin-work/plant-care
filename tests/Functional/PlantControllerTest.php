@@ -259,4 +259,21 @@ final class PlantControllerTest extends WebTestCase
         self::assertSame('medium', $option->attr('data-light'));
         self::assertStringContainsString('Water about every 5 days, toxic to pets.', (string) $option->attr('data-hint'));
     }
+
+    public function testPropagatePlant(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $household = $this->createHousehold($user);
+        $plant = $this->createPlant($household, 'Pancake');
+        $client->loginUser($user);
+
+        $client->request('GET', '/plants/'.$plant->getId());
+        $client->submitForm('Propagate');
+        self::assertResponseRedirects();
+        $client->followRedirect();
+
+        self::assertSelectorTextContains('.flash', 'Welcome, Pancake (cutting)!');
+        self::assertCount(2, static::getContainer()->get(PlantRepository::class)->findActive($household));
+    }
 }

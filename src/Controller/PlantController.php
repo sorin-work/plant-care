@@ -3,9 +3,11 @@
 namespace App\Controller;
 
 use App\Care\PlantSorter;
+use App\Care\Propagator;
 use App\Care\ScheduleFactory;
 use App\Entity\JournalEntry;
 use App\Entity\Plant;
+use App\Entity\User;
 use App\Form\JournalEntryType;
 use App\Form\PlantType;
 use App\Household\CurrentHousehold;
@@ -24,6 +26,7 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
 #[Route('/plants')]
 final class PlantController extends AppController
@@ -151,6 +154,18 @@ final class PlantController extends AppController
         $this->addFlash('success', \sprintf('%s was archived. You can restore it from the archive.', $plant->getName()));
 
         return $this->redirectToRoute('plant_index');
+    }
+
+    #[Route('/{id}/propagate', name: 'plant_propagate', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function propagate(Plant $plant, Request $request, Propagator $propagator, #[CurrentUser] User $user): Response
+    {
+        $this->guard(Permission::EDIT, $plant);
+        $this->assertCsrf('propagate-plant-'.$plant->getId(), $request);
+
+        $baby = $propagator->propagate($plant, $user, $this->clock->today($plant->getHousehold()));
+        $this->addFlash('success', \sprintf('Welcome, %s! Rename it and give it its own spot.', $baby->getName()));
+
+        return $this->redirectToRoute('plant_edit', ['id' => $baby->getId()]);
     }
 
     #[Route('/{id}/restore', name: 'plant_restore', methods: ['POST'], requirements: ['id' => '\d+'])]
