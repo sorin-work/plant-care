@@ -14,10 +14,13 @@ use App\Security\Permission;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
+use Symfony\Component\String\Slugger\AsciiSlugger;
 
 final class JournalController extends AppController
 {
@@ -35,6 +38,34 @@ final class JournalController extends AppController
             'plant' => $plant,
             'page' => $entries->pageForPlant($plant, $request->query->getInt('page', 1)),
         ]);
+    }
+
+    #[Route('/plants/{id}/journal.csv', name: 'journal_export', methods: ['GET'], requirements: ['id' => '\d+'])]
+    public function export(Plant $plant, JournalEntryRepository $entries): StreamedResponse
+    {
+        $this->guard(Permission::VIEW, $plant);
+
+        $response = new StreamedResponse(static function () use ($plant, $entries): void {
+            $out = fopen('php://output', 'w');
+            \assert(false !== $out);
+            fwrite($out, "\xEF\xBB\xBF"); // BOM so spreadsheet apps detect UTF-8
+            fputcsv($out, ['date', 'author', 'note', 'photo'], escape: '');
+            foreach ($entries->findBy(['plant' => $plant], ['writtenOn' => 'ASC', 'id' => 'ASC']) as $entry) {
+                fputcsv($out, [
+                    $entry->getWrittenOn()->format('Y-m-d'),
+                    $entry->getAuthor()?->getDisplayName() ?? '',
+                    $entry->getNote(),
+                    null !== $entry->getPhoto() ? 'yes' : 'no',
+                ], escape: '');
+            }
+            fclose($out);
+        });
+
+        $filename = \sprintf('journal-%s.csv', (new AsciiSlugger())->slug($plant->getName())->lower());
+        $response->headers->set('Content-Type', 'text/csv; charset=utf-8');
+        $response->headers->set('Content-Disposition', HeaderUtils::makeDisposition(HeaderUtils::DISPOSITION_ATTACHMENT, $filename));
+
+        return $response;
     }
 
     #[Route('/plants/{id}/journal/new', name: 'journal_new', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]

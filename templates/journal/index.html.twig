@@ -6,7 +6,12 @@
     <p><a href="{{ path('plant_show', {id: plant.id}) }}">&larr; {{ plant.name }}</a></p>
     <div class="page-header">
         <h1>{{ plant.name }}’s journal</h1>
-        <a href="{{ path('journal_new', {id: plant.id}) }}" class="btn">New entry</a>
+        <span class="actions">
+            <a href="{{ path('journal_export', {id: plant.id}) }}">Download CSV</a>
+            {% if is_granted('HOUSEHOLD_CARE', plant) %}
+                <a href="{{ path('journal_new', {id: plant.id}) }}" class="btn">New entry</a>
+            {% endif %}
+        </span>
     </div>
 
     <section class="card">

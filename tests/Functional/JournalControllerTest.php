@@ -200,4 +200,23 @@ final class JournalControllerTest extends WebTestCase
         self::assertCount(5, $crawler->filter('.journal-entry'));
         self::assertSame('Entry 1', $crawler->filter('.journal-entry p')->last()->text());
     }
+
+    public function testExportCsv(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser(name: 'Mara');
+        $plant = $this->createPlant($this->createHousehold($user), 'Monty the Monstera');
+        $this->em()->persist((new JournalEntry($plant, $user, new DateTimeImmutable('2026-03-02')))->setNote("Two lines,\nwith \"quotes\""));
+        $this->em()->persist((new JournalEntry($plant, null, new DateTimeImmutable('2026-03-01')))->setNote('First'));
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $client->request('GET', '/plants/'.$plant->getId().'/journal.csv');
+        $csv = $client->getInternalResponse()->getContent();
+
+        self::assertResponseIsSuccessful();
+        self::assertResponseHeaderSame('content-disposition', 'attachment; filename=journal-monty-the-monstera.csv');
+        self::assertStringStartsWith("\xEF\xBB\xBFdate,author,note,photo\n2026-03-01,,First,no\n", $csv);
+        self::assertStringContainsString("2026-03-02,Mara,\"Two lines,\nwith \"\"quotes\"\"\",no\n", $csv);
+    }
 }
