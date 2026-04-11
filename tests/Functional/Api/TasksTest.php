@@ -106,4 +106,33 @@ final class TasksTest extends WebTestCase
         $client->request('POST', '/api/tasks/'.$schedule->getId().'/snooze', server: $headers, content: '{"days": "3"}');
         self::assertResponseStatusCodeSame(422);
     }
+
+    public function testStrangerCannotSkipTasks(): void
+    {
+        $client = static::createClient();
+        $schedule = $this->schedule($this->createPlant($this->createHousehold($this->createUser('owner@example.com'))), '-1 day');
+        $before = $schedule->getNextDueOn()->format('Y-m-d');
+        $stranger = $this->createUser('stranger@example.com');
+
+        $client->request('POST', '/api/tasks/'.$schedule->getId().'/skip', server: $this->apiHeaders($stranger));
+
+        self::assertResponseStatusCodeSame(404);
+        $this->em()->clear();
+        self::assertSame($before, $this->em()->find(CareSchedule::class, $schedule->getId())?->getNextDueOn()->format('Y-m-d'));
+    }
+
+    public function testViewerCannotSkipTasks(): void
+    {
+        $client = static::createClient();
+        $owner = $this->createUser('owner@example.com');
+        $household = $this->createHousehold($owner);
+        $viewer = $this->createUser('viewer@example.com');
+        $this->addMember($household, $viewer, HouseholdRole::Viewer);
+        $schedule = $this->schedule($this->createPlant($household));
+
+        $client->request('POST', '/api/tasks/'.$schedule->getId().'/skip', server: $this->apiHeaders($viewer));
+
+        self::assertResponseStatusCodeSame(403);
+        self::assertCount(0, static::getContainer()->get(CareEventRepository::class)->findRecentForPlant($schedule->getPlant()));
+    }
 }

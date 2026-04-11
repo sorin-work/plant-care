@@ -28,6 +28,7 @@ final class TaskController extends ApiController
     #[Route('/skip', name: 'api_task_skip', methods: ['POST'])]
     public function skip(CareSchedule $schedule, CareTasks $tasks, HouseholdClock $clock, #[CurrentUser] User $user): JsonResponse
     {
+        $this->guard(Permission::CARE, $schedule);
         $tasks->skip($schedule, $user, $clock->today($schedule->getPlant()->getHousehold()));
 
         return $this->json(Presenter::schedule($schedule));
