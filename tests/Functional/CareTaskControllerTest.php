@@ -169,4 +169,47 @@ final class CareTaskControllerTest extends WebTestCase
         self::assertResponseStatusCodeSame(422);
         self::assertFalse(json_decode((string) $client->getResponse()->getContent(), true)['ok']);
     }
+
+    public function testWaterAllInRoom(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $household = $this->createHousehold($user);
+        $kitchen = $this->createRoom($household, 'Kitchen');
+        foreach (['Basil', 'Thyme', 'Mint'] as $name) {
+            $this->em()->persist(new CareSchedule($this->createPlant($household, $name, $kitchen), CareTaskType::Water, 2, new DateTimeImmutable('today')));
+        }
+        $fertilize = new CareSchedule($this->createPlant($household, 'Chili', $kitchen), CareTaskType::Fertilize, 14, new DateTimeImmutable('today'));
+        $this->em()->persist($fertilize);
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $client->request('GET', '/');
+        $client->submitForm('💧 Water all 3');
+        $client->followRedirect();
+
+        self::assertSelectorTextContains('.flash', '3 tasks done.');
+        self::assertSelectorTextContains('.tasks', 'Chili');
+        self::assertSelectorCount(1, '.tasks li');
+    }
+
+    public function testDoneManyChecksEachTask(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $household = $this->createHousehold($user);
+        foreach (['A', 'B'] as $name) {
+            $this->em()->persist(new CareSchedule($this->createPlant($household, $name), CareTaskType::Water, 2, new DateTimeImmutable('today')));
+        }
+        $foreign = new CareSchedule($this->createPlant($this->createHousehold($this->createUser('x@example.com'))), CareTaskType::Water, 2, new DateTimeImmutable('today'));
+        $this->em()->persist($foreign);
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $crawler = $client->request('GET', '/');
+        $token = $crawler->filter('.room-group-header input[name=_token]')->attr('value');
+        $client->request('POST', '/tasks/done', ['_token' => $token, 'ids' => [$foreign->getId()]]);
+
+        self::assertResponseStatusCodeSame(404);
+    }
 }

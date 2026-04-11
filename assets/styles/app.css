@@ -775,3 +775,10 @@ form.inline {
     font-size: .85rem;
     color: var(--gray-500);
 }
+
+.room-group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}

@@ -6,6 +6,7 @@ use App\Care\CareTasks;
 use App\Entity\CareSchedule;
 use App\Entity\User;
 use App\Household\HouseholdClock;
+use App\Repository\CareScheduleRepository;
 use App\Security\Permission;
 use InvalidArgumentException;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -35,6 +36,27 @@ final class CareTaskController extends AppController
         $this->tasks->markDone($schedule, $user, $this->clock->today($schedule->getPlant()->getHousehold()));
 
         return $this->respond($request, $schedule, \sprintf('%s: %s done.', $schedule->getPlant()->getName(), mb_strtolower($schedule->getType()->label())));
+    }
+
+    /**
+     * Marks several tasks done at once, e.g. watering everything in a room.
+     */
+    #[Route('/done', name: 'task_done_many', methods: ['POST'])]
+    public function doneMany(Request $request, CareScheduleRepository $schedules, #[CurrentUser] User $user): Response
+    {
+        $this->assertCsrf('tasks-many', $request);
+        $ids = array_map('intval', $request->request->all('ids'));
+
+        $count = 0;
+        foreach ($ids === [] ? [] : $schedules->findBy(['id' => $ids]) as $schedule) {
+            $this->guard(Permission::CARE, $schedule);
+            $this->tasks->markDone($schedule, $user, $this->clock->today($schedule->getPlant()->getHousehold()));
+            ++$count;
+        }
+
+        $this->addFlash('success', \sprintf('%d %s done.', $count, 1 === $count ? 'task' : 'tasks'));
+
+        return $this->redirectToRoute('home');
     }
 
     #[Route('/{id}/skip', name: 'task_skip', methods: ['POST'], requirements: ['id' => '\d+'])]
