@@ -46,4 +46,24 @@ class JournalEntryRepository extends ServiceEntityRepository
 
         return $result;
     }
+
+    /**
+     * Journal entries with a photo, oldest first, to see the plant grow.
+     *
+     * @return list<JournalEntry>
+     */
+    public function findWithPhotos(Plant $plant): array
+    {
+        /** @var list<JournalEntry> $result */
+        $result = $this->createQueryBuilder('j')
+            ->where('j.plant = :plant')
+            ->andWhere('j.photo IS NOT NULL')
+            ->setParameter('plant', $plant)
+            ->orderBy('j.writtenOn', 'ASC')
+            ->addOrderBy('j.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        return $result;
+    }
 }

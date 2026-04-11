@@ -129,4 +129,21 @@ final class PhotoTest extends WebTestCase
         $client->request('GET', $src);
         self::assertResponseIsSuccessful();
     }
+
+    public function testGalleryShowsPhotosOldestFirst(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $plant = $this->createPlant($this->createHousehold($user), 'Monty');
+        $storage = static::getContainer()->get(\App\Photo\PhotoStorage::class);
+        $this->em()->persist((new JournalEntry($plant, $user, new DateTimeImmutable('2026-03-01')))->setNote('Later')->setPhoto($storage->store($this->leaf())));
+        $this->em()->persist((new JournalEntry($plant, $user, new DateTimeImmutable('2026-01-01')))->setNote('Earlier')->setPhoto($storage->store($this->leaf())));
+        $this->em()->persist((new JournalEntry($plant, $user, new DateTimeImmutable('2026-02-01')))->setNote('No photo'));
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $crawler = $client->request('GET', '/plants/'.$plant->getId().'/photos');
+
+        self::assertSame(['1 Jan 2026', '1 Mar 2026'], $crawler->filter('.gallery li span')->each(fn ($s) => $s->text()));
+    }
 }

@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Photos · {{ plant.name }} · {{ parent() }}{% endblock %}
+
+{% block body %}
+    <p><a href="{{ path('plant_show', {id: plant.id}) }}">&larr; {{ plant.name }}</a></p>
+    <h1>{{ plant.name }} over time</h1>
+
+    {% if entries is empty %}
+        <p class="empty">No photos yet. Add one with a journal entry.</p>
+    {% else %}
+        <ul class="gallery">
+            {% for entry in entries %}
+                <li>
+                    <a href="{{ path('photo_show', {name: entry.photo}) }}" target="_blank">
+                        <img src="{{ path('photo_show', {name: entry.photo}) }}" alt="{{ plant.name }} on {{ entry.writtenOn|date('j M Y') }}" loading="lazy">
+                    </a>
+                    <span class="muted">{{ entry.writtenOn|date('j M Y') }}</span>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endblock %}

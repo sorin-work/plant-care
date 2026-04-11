@@ -40,6 +40,17 @@ final class JournalController extends AppController
         ]);
     }
 
+    #[Route('/plants/{id}/photos', name: 'journal_photos', methods: ['GET'], requirements: ['id' => '\d+'])]
+    public function photos(Plant $plant, JournalEntryRepository $entries): Response
+    {
+        $this->guard(Permission::VIEW, $plant);
+
+        return $this->render('journal/photos.html.twig', [
+            'plant' => $plant,
+            'entries' => $entries->findWithPhotos($plant),
+        ]);
+    }
+
     #[Route('/plants/{id}/journal.csv', name: 'journal_export', methods: ['GET'], requirements: ['id' => '\d+'])]
     public function export(Plant $plant, JournalEntryRepository $entries): StreamedResponse
     {
