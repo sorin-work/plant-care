@@ -1,0 +1,35 @@
+{# One due task with its done / snooze / skip actions. Expects `task` and `back`. #}
+{% set schedule = task.schedule %}
+<li data-controller="task">
+    <span>
+        <span aria-hidden="true">{{ schedule.type.icon }}</span>
+        <strong>{{ schedule.type.label }}</strong>
+        <a href="{{ path('plant_show', {id: task.plant.id}) }}">{{ task.plant.name }}</a>
+        {% if task.overdue %}
+            <span class="badge badge-late">{{ task.daysOverdue }} {{ task.daysOverdue == 1 ? 'day' : 'days' }} late</span>
+        {% else %}
+            <span class="badge">due today</span>
+        {% endif %}
+        <span class="task-status muted" data-task-target="status" aria-live="polite"></span>
+    </span>
+    {% if is_granted('HOUSEHOLD_CARE', schedule) %}
+    <span class="actions">
+        <details class="menu">
+            <summary class="btn btn-secondary btn-small">Later</summary>
+            <form method="post" action="{{ path('task_snooze', {id: schedule.id}) }}" class="menu-items" data-action="task#submit">
+                <input type="hidden" name="_token" value="{{ csrf_token('task-' ~ schedule.id) }}">
+                <input type="hidden" name="_back" value="{{ back }}">
+                <button type="submit" name="days" value="1">1 day</button>
+                <button type="submit" name="days" value="3">3 days</button>
+                <button type="submit" name="days" value="7">1 week</button>
+                <button type="submit" formaction="{{ path('task_skip', {id: schedule.id}) }}" class="menu-separator">Skip this time</button>
+            </form>
+        </details>
+        <form method="post" action="{{ path('task_done', {id: schedule.id}) }}" class="inline" data-action="task#submit">
+            <input type="hidden" name="_token" value="{{ csrf_token('task-' ~ schedule.id) }}">
+            <input type="hidden" name="_back" value="{{ back }}">
+            <button type="submit" class="btn btn-small">Done</button>
+        </form>
+    </span>
+    {% endif %}
+</li>
