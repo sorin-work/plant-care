@@ -25,6 +25,7 @@
     <form method="get" class="search plant-search">
         {% if selected_room %}<input type="hidden" name="room" value="{{ selected_room.id }}">{% endif %}
         <input type="search" name="q" value="{{ query }}" placeholder="Search by name or species" aria-label="Search plants">
+        <label class="checkbox-inline"><input type="checkbox" name="toxic" value="1" {{ toxic_only ? 'checked' }} onchange="this.form.requestSubmit()"> Toxic to pets</label>
         <select name="sort" aria-label="Sort plants" onchange="this.form.requestSubmit()">
             {% for key, label in sorts %}
                 <option value="{{ key }}" {{ key == sort ? 'selected' }}>{{ label }}</option>
@@ -55,6 +56,9 @@
                     <p class="tags">
                         <span class="tag">{{ plant.room ? plant.room.name : 'No room' }}</span>
                         <span class="tag">{{ plant.light.label }}</span>
+                        {% if plant.species and plant.species.toxicToPets %}
+                            <span class="tag tag-warning" title="Toxic to cats and dogs">Toxic to pets</span>
+                        {% endif %}
                     </p>
                     {% set next = plant.nextSchedule %}
                     {% if next %}

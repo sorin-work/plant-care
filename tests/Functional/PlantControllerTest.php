@@ -276,4 +276,26 @@ final class PlantControllerTest extends WebTestCase
         self::assertSelectorTextContains('.flash', 'Welcome, Pancake (cutting)!');
         self::assertCount(2, static::getContainer()->get(PlantRepository::class)->findActive($household));
     }
+
+    public function testToxicToPetsBadgeAndFilter(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $household = $this->createHousehold($user);
+        $lily = (new Species('Peace lily', 'Spathiphyllum wallisii', 5, LightLevel::Medium))->setToxicToPets(true);
+        $spider = new Species('Spider plant', 'Chlorophytum comosum', 6, LightLevel::Medium);
+        $this->em()->persist($lily);
+        $this->em()->persist($spider);
+        $this->createPlant($household, 'Lily')->setSpecies($lily);
+        $this->createPlant($household, 'Spidey')->setSpecies($spider);
+        $this->createPlant($household, 'Unknown');
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $crawler = $client->request('GET', '/plants');
+        self::assertSelectorCount(1, '.tag-warning');
+
+        $crawler = $client->request('GET', '/plants?toxic=1');
+        self::assertSame(['Lily'], $crawler->filter('.plant-card h2')->each(fn ($n) => $n->text()));
+    }
 }

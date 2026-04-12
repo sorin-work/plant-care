@@ -803,3 +803,17 @@ form.inline {
 .gallery span {
     font-size: .85rem;
 }
+
+.tag-warning {
+    background: #fef3e2;
+    color: var(--amber-600);
+}
+
+.checkbox-inline {
+    display: flex;
+    gap: .35rem;
+    align-items: center;
+    margin: 0;
+    font-weight: 400;
+    white-space: nowrap;
+}

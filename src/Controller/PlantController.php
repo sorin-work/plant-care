@@ -52,11 +52,16 @@ final class PlantController extends AppController
         }
 
         $query = $request->query->getString('q');
+        $toxicOnly = $request->query->getBoolean('toxic');
         $sort = $request->query->getString('sort', PlantSorter::NAME);
         $sort = \array_key_exists($sort, PlantSorter::ALL) ? $sort : PlantSorter::NAME;
 
         return $this->render('plant/index.html.twig', [
-            'plants' => $sorter->sort($plants->findActive($household, $selected, $query), $sort),
+            'plants' => $sorter->sort(array_values(array_filter(
+                $plants->findActive($household, $selected, $query),
+                static fn (Plant $p): bool => !$toxicOnly || true === $p->getSpecies()?->isToxicToPets(),
+            )), $sort),
+            'toxic_only' => $toxicOnly,
             'sort' => $sort,
             'sorts' => PlantSorter::ALL,
             'rooms' => $allRooms,
