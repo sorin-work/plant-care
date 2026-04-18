@@ -33,7 +33,22 @@ final class HomeControllerTest extends WebTestCase
 
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('h1', 'Today');
+        self::assertSelectorTextContains('.onboarding', 'Add your first plant');
+    }
+
+    public function testCaughtUpWhenPlantsHaveNothingDue(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $household = $this->createHousehold($user);
+        $this->em()->persist(new CareSchedule($this->createPlant($household), CareTaskType::Water, 7, new DateTimeImmutable('+2 days')));
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $client->request('GET', '/');
+
         self::assertSelectorTextContains('.empty', 'All caught up');
+        self::assertSelectorNotExists('.onboarding');
     }
 
     public function testShowsDueAndOverdueTasksOnly(): void

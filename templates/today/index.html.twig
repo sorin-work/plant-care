@@ -11,7 +11,20 @@
         </div>
     </div>
 
-    <p class="empty" data-today-target="empty" {{ count > 0 ? 'hidden' }}>All caught up. Nothing needs doing today. 🌿</p>
+    {% if not has_plants %}
+        <section class="empty onboarding">
+            <h2>Welcome to {{ current_household().name }}</h2>
+            <p>Add the rooms of your home and the plants that live in them. We will work out when they need water, food and a bigger pot.</p>
+            {% if is_granted('HOUSEHOLD_EDIT', current_household()) %}
+                <p class="actions">
+                    <a href="{{ path('room_index') }}" class="btn btn-secondary">Add rooms</a>
+                    <a href="{{ path('plant_new') }}" class="btn">Add your first plant</a>
+                </p>
+            {% endif %}
+        </section>
+    {% else %}
+        <p class="empty" data-today-target="empty" {{ count > 0 ? 'hidden' }}>All caught up. Nothing needs doing today. 🌿</p>
+    {% endif %}
     {% for group in groups %}
         <section class="room-group">
             <div class="room-group-header">

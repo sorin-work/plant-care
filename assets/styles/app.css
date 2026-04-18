@@ -817,3 +817,7 @@ form.inline {
     font-weight: 400;
     white-space: nowrap;
 }
+
+.onboarding .actions {
+    justify-content: center;
+}
