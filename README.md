@@ -3,13 +3,18 @@
 A houseplant care tracker: watering, fertilizing and repotting schedules for the
 plants in your home, with a daily list of what needs doing.
 
-- **Plants** with species, room, light and a cover photo
-- **Schedules** for watering, fertilizing and repotting that stretch in winter and
-  shrink in summer
-- **Today**: due and overdue tasks grouped by room, done / snooze / skip in one click
-- **Journal** with notes and photos for every plant
-- **Species catalog** with care defaults for 30+ common houseplants
+- **Plants** with species, room, light and a cover photo; search, sort, archive and
+  propagate cuttings
+- **Schedules** for watering, fertilizing, misting and repotting that stretch in
+  winter and shrink in summer, with an optional winter pause for fertilizer
+- **Today**: due and overdue tasks grouped by room, done / snooze / skip in one click,
+  or water a whole room at once
+- **Coming up**: what is due over the next week, plus an iCal feed for your calendar
+- **Journal** with notes and photos for every plant, a photo timeline and CSV export
+- **Species catalog** with care defaults and pet toxicity for 30+ common houseplants
 - **Sharing**: invite the people you live with to a household, each with a role
+- **Stats** on the care of the last weeks
+- **JSON API** with personal tokens
 
 ## Households and roles
 
