@@ -39,4 +39,26 @@ final class CalendarTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(404);
     }
+
+    public function testEventKeepsItsUidWhenTheDateMoves(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $schedule = new CareSchedule($this->createPlant($this->createHousehold($user), 'Monty'), CareTaskType::Water, 7, new DateTimeImmutable('2026-05-07'));
+        $this->em()->persist($schedule);
+        $token = $user->resetCalendarToken();
+        $this->em()->flush();
+
+        $client->request('GET', '/calendar/'.$token.'.ics');
+        $first = (string) $client->getResponse()->getContent();
+
+        $schedule->setNextDueOn(new DateTimeImmutable('2026-05-14'));
+        $this->em()->flush();
+        $client->request('GET', '/calendar/'.$token.'.ics');
+        $second = (string) $client->getResponse()->getContent();
+
+        self::assertStringContainsString('UID:schedule-'.$schedule->getId().'@plant-care', $first);
+        self::assertStringContainsString('UID:schedule-'.$schedule->getId().'@plant-care', $second);
+        self::assertStringContainsString('DTSTART;VALUE=DATE:20260514', $second);
+    }
 }

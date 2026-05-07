@@ -27,7 +27,7 @@ final class CalendarController extends AppController
             $plant = $schedule->getPlant();
             $due = max($schedule->getNextDueOn(), $schedule->getSnoozedUntil() ?? $schedule->getNextDueOn());
             $ics->addAllDayEvent(
-                \sprintf('schedule-%d-%s@plant-care', $schedule->getId(), $due->format('Ymd')),
+                \sprintf('schedule-%d@plant-care', $schedule->getId()),
                 $due,
                 \sprintf('%s %s %s', $schedule->getType()->icon(), $schedule->getType()->label(), $plant->getName()),
                 implode(' · ', array_filter([$plant->getRoom()?->getName(), $plant->getHousehold()->getName()])),
