@@ -146,4 +146,37 @@ final class PhotoTest extends WebTestCase
 
         self::assertSame(['1 Jan 2026', '1 Mar 2026'], $crawler->filter('.gallery li span')->each(fn ($s) => $s->text()));
     }
+
+    public function testPhotosAreServedWithSafeHeaders(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $plant = $this->createPlant($this->createHousehold($user), 'Monty');
+        $name = static::getContainer()->get(\App\Photo\PhotoStorage::class)->store($this->leaf());
+        $this->em()->persist((new JournalEntry($plant, $user, new DateTimeImmutable()))->setNote('x')->setPhoto($name));
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $client->request('GET', '/photos/'.$name);
+
+        self::assertResponseHeaderSame('content-type', 'image/png');
+        self::assertResponseHeaderSame('x-content-type-options', 'nosniff');
+    }
+
+    public function testHtmlUploadedAsPngIsRejected(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $plant = $this->createPlant($this->createHousehold($user), 'Monty');
+        $client->loginUser($user);
+
+        $tmp = tempnam(sys_get_temp_dir(), 'evil');
+        file_put_contents($tmp, '<html><body><script>alert(1)</script></body></html>');
+        $crawler = $client->request('GET', '/plants/'.$plant->getId().'/journal/new');
+        $form = $crawler->selectButton('Add to journal')->form(['journal_entry[note]' => 'Nice leaf']);
+        $client->request('POST', $form->getUri(), $form->getPhpValues(), ['journal_entry' => ['photoFile' => new UploadedFile($tmp, 'leaf.png', 'image/png', null, true)]]);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertCount(0, $this->em()->getRepository(JournalEntry::class)->findAll());
+    }
 }

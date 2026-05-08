@@ -29,6 +29,10 @@ final class PhotoController extends AppController
         }
 
         $response = $this->file($storage->path($name), null, ResponseHeaderBag::DISPOSITION_INLINE);
+        // The stored extension decides the type, never the file content.
+        $response->headers->set('Content-Type', PhotoStorage::contentType($name));
+        $response->headers->set('X-Content-Type-Options', 'nosniff');
+        $response->headers->set('Content-Security-Policy', "default-src 'none'; sandbox");
         $response->setPrivate();
         $response->setMaxAge(86400);
 

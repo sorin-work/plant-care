@@ -43,8 +43,10 @@ final class PhotoStorage
             throw new InvalidPhotoException('Photos can be at most 8 MB.');
         }
 
-        $extension = self::EXTENSIONS[$file->getClientMimeType()] ?? null;
-        if (null === $extension) {
+        // Never trust the type the browser sends: look at the bytes.
+        $extension = self::EXTENSIONS[$file->getMimeType() ?? ''] ?? null;
+        $image = null === $extension ? false : @getimagesize($file->getPathname());
+        if (null === $extension || false === $image || $image['mime'] !== $file->getMimeType()) {
             throw new InvalidPhotoException('Please upload a JPEG, PNG or WebP image.');
         }
 
@@ -79,5 +81,15 @@ final class PhotoStorage
     public static function isValidName(string $name): bool
     {
         return 1 === preg_match('/^[a-f0-9]{32}\.(jpg|png|webp)$/', $name);
+    }
+
+    public static function contentType(string $name): string
+    {
+        return match (pathinfo($name, \PATHINFO_EXTENSION)) {
+            'jpg' => 'image/jpeg',
+            'png' => 'image/png',
+            'webp' => 'image/webp',
+            default => throw new InvalidArgumentException('Invalid photo name.'),
+        };
     }
 }

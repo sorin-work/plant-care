@@ -43,9 +43,40 @@ final class PhotoStorageTest extends TestCase
 
     public function testRejectsUnsupportedType(): void
     {
+        $tmp = tempnam(sys_get_temp_dir(), 'up');
+        file_put_contents($tmp, '%PDF-1.4');
+
         $this->expectException(InvalidPhotoException::class);
 
-        (new PhotoStorage($this->dir))->store($this->upload('application/pdf'));
+        (new PhotoStorage($this->dir))->store(new UploadedFile($tmp, 'doc.pdf', 'application/pdf', null, true));
+    }
+
+    public function testIgnoresTheClientMimeType(): void
+    {
+        // a real PNG sent as application/octet-stream is fine
+        $name = (new PhotoStorage($this->dir))->store($this->upload('application/octet-stream'));
+
+        self::assertStringEndsWith('.png', $name);
+    }
+
+    public function testRejectsHtmlPretendingToBeAnImage(): void
+    {
+        $tmp = tempnam(sys_get_temp_dir(), 'up');
+        file_put_contents($tmp, '<html><script>alert(document.cookie)</script></html>');
+
+        $this->expectException(InvalidPhotoException::class);
+
+        (new PhotoStorage($this->dir))->store(new UploadedFile($tmp, 'leaf.png', 'image/png', null, true));
+    }
+
+    public function testRejectsSvg(): void
+    {
+        $tmp = tempnam(sys_get_temp_dir(), 'up');
+        file_put_contents($tmp, '<svg xmlns="http://www.w3.org/2000/svg" onload="alert(1)"/>');
+
+        $this->expectException(InvalidPhotoException::class);
+
+        (new PhotoStorage($this->dir))->store(new UploadedFile($tmp, 'leaf.svg', 'image/svg+xml', null, true));
     }
 
     public function testDelete(): void
