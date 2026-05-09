@@ -219,4 +219,39 @@ final class JournalControllerTest extends WebTestCase
         self::assertStringStartsWith("\xEF\xBB\xBFdate,author,note,photo\n2026-03-01,,First,no\n", $csv);
         self::assertStringContainsString("2026-03-02,Mara,\"Two lines,\nwith \"\"quotes\"\"\",no\n", $csv);
     }
+
+    public function testAuthorCanEditEntry(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $plant = $this->createPlant($this->createHousehold($user));
+        $entry = (new JournalEntry($plant, $user, new DateTimeImmutable('2026-05-01')))->setNote('Typo hree');
+        $this->em()->persist($entry);
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $client->request('GET', '/plants/'.$plant->getId().'/journal');
+        $client->clickLink('Edit');
+        $client->submitForm('Save', ['journal_entry[note]' => 'Typo here']);
+        $client->followRedirect();
+
+        self::assertSelectorTextContains('.journal-entry', 'Typo here');
+    }
+
+    public function testOthersCannotEditEntry(): void
+    {
+        $client = static::createClient();
+        $owner = $this->createUser('owner@example.com');
+        $household = $this->createHousehold($owner);
+        $entry = (new JournalEntry($this->createPlant($household), $owner, new DateTimeImmutable()))->setNote('Mine');
+        $this->em()->persist($entry);
+        $this->em()->flush();
+        $editor = $this->createUser('editor@example.com');
+        $this->addMember($household, $editor, HouseholdRole::Editor);
+        $client->loginUser($editor);
+
+        $client->request('GET', '/journal/'.$entry->getId().'/edit');
+
+        self::assertResponseStatusCodeSame(403);
+    }
 }

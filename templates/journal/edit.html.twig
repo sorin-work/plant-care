@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit journal entry · {{ plant.name }} · {{ parent() }}{% endblock %}
+
+{% block body %}
+    <section class="card narrow">
+        <h1>Edit journal entry</h1>
+        <p class="muted">{{ plant.name }}</p>
+        {{ form_start(form) }}
+            {{ form_row(form.note) }}
+            {{ form_row(form.writtenOn) }}
+            <button type="submit" class="btn">Save</button>
+            <a href="{{ path('journal_index', {id: plant.id}) }}" class="btn btn-secondary">Cancel</a>
+        {{ form_end(form) }}
+    </section>
+{% endblock %}

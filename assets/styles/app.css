@@ -821,3 +821,9 @@ form.inline {
 .onboarding .actions {
     justify-content: center;
 }
+
+.entry-edit {
+    float: right;
+    margin-left: .75rem;
+    font-size: .85rem;
+}

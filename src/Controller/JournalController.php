@@ -118,6 +118,32 @@ final class JournalController extends AppController
         ], new Response(status: $form->isSubmitted() ? 422 : 200));
     }
 
+    #[Route('/journal/{id}/edit', name: 'journal_edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
+    public function edit(JournalEntry $entry, Request $request, #[CurrentUser] User $user): Response
+    {
+        $this->guard(Permission::CARE, $entry);
+        if ($entry->getAuthor()?->getId() !== $user->getId()) {
+            throw $this->createAccessDeniedException('Only the author can edit a journal entry.');
+        }
+
+        $form = $this->createForm(JournalEntryType::class, $entry);
+        $form->remove('photoFile');
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $this->em->flush();
+            $this->addFlash('success', 'Journal entry updated.');
+
+            return $this->redirectToRoute('journal_index', ['id' => $entry->getPlant()->getId()]);
+        }
+
+        return $this->render('journal/edit.html.twig', [
+            'entry' => $entry,
+            'plant' => $entry->getPlant(),
+            'form' => $form,
+        ], new Response(status: $form->isSubmitted() ? 422 : 200));
+    }
+
     #[Route('/journal/{id}/delete', name: 'journal_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function delete(JournalEntry $entry, Request $request, #[CurrentUser] User $user, PhotoStorage $photos): Response
     {
