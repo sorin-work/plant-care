@@ -15,11 +15,15 @@
                 <ul class="list card">
                     {% for room in rooms %}
                         <li>
-                            <span>{{ room.name }}</span>
+                            {% set n = plant_counts[room.id] ?? 0 %}
+                            <span>
+                                <a href="{{ path('plant_index', {room: room.id}) }}">{{ room.name }}</a>
+                                <span class="muted">{{ n }} {{ n == 1 ? 'plant' : 'plants' }}</span>
+                            </span>
                             {% if is_granted('HOUSEHOLD_EDIT', room) %}
                             <span class="actions">
                                 <a href="{{ path('room_edit', {id: room.id}) }}">Rename</a>
-                                <form method="post" action="{{ path('room_delete', {id: room.id}) }}" class="inline" onsubmit="return confirm('Remove this room? Plants in it are kept.')">
+                                <form method="post" action="{{ path('room_delete', {id: room.id}) }}" class="inline" onsubmit="return confirm('Remove {{ room.name|e('js') }}? {{ n }} plants in it are kept without a room.')">
                                     <input type="hidden" name="_token" value="{{ csrf_token('delete-room-' ~ room.id) }}">
                                     <button type="submit" class="link danger">Remove</button>
                                 </form>

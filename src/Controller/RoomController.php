@@ -42,6 +42,7 @@ final class RoomController extends AppController
 
         return $this->render('room/index.html.twig', [
             'rooms' => $rooms->findForHousehold($household),
+            'plant_counts' => $rooms->countPlants($household),
             'form' => $form,
         ], new Response(status: $form->isSubmitted() ? 422 : 200));
     }

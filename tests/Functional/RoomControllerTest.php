@@ -90,4 +90,24 @@ final class RoomControllerTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(404);
     }
+
+    public function testShowsPlantCounts(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $household = $this->createHousehold($user);
+        $kitchen = $this->createRoom($household, 'Kitchen');
+        $this->createRoom($household, 'Hall');
+        $this->createPlant($household, 'Basil', $kitchen);
+        $this->createPlant($household, 'Mint', $kitchen);
+        $archived = $this->createPlant($household, 'Old', $kitchen);
+        $archived->archive();
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $crawler = $client->request('GET', '/rooms');
+
+        $rows = $crawler->filter('.list li')->each(fn ($li) => $li->filter('span')->first()->text());
+        self::assertSame(['Hall 0 plants', 'Kitchen 2 plants'], $rows);
+    }
 }
