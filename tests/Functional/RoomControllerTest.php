@@ -110,4 +110,20 @@ final class RoomControllerTest extends WebTestCase
         $rows = $crawler->filter('.list li')->each(fn ($li) => $li->filter('span')->first()->text());
         self::assertSame(['Hall 0 plants', 'Kitchen 2 plants'], $rows);
     }
+
+    public function testRoomLightIsOfferedToPlantForm(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $this->createHousehold($user);
+        $client->loginUser($user);
+
+        $client->request('GET', '/rooms');
+        $client->submitForm('Add room', ['room[name]' => 'Sunroom', 'room[light]' => 'direct']);
+        $crawler = $client->followRedirect();
+        self::assertSelectorTextContains('.list', 'direct sun');
+
+        $crawler = $client->request('GET', '/plants/new');
+        self::assertSame('direct', $crawler->filter('#plant_room option:contains("Sunroom")')->attr('data-light'));
+    }
 }

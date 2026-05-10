@@ -3,7 +3,9 @@
 namespace App\Form;
 
 use App\Entity\Room;
+use App\Enum\LightLevel;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -19,7 +21,14 @@ final class RoomType extends AbstractType
             'label' => 'Room name',
             'empty_data' => '',
             'attr' => ['placeholder' => 'e.g. Living room'],
-        ]);
+        ])
+            ->add('light', EnumType::class, [
+                'class' => LightLevel::class,
+                'required' => false,
+                'placeholder' => 'Varies',
+                'label' => 'Usual light',
+                'choice_label' => fn (LightLevel $l): string => $l->label(),
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

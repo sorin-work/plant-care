@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Enum\LightLevel;
 use App\Repository\RoomRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
@@ -25,6 +26,10 @@ class Room
     #[Assert\NotBlank]
     #[Assert\Length(max: 60)]
     private string $name;
+
+    /** Typical light in this room, used as the default for new plants. */
+    #[ORM\Column(length: 20, nullable: true, enumType: LightLevel::class)]
+    private ?LightLevel $light = null;
 
     public function __construct(Household $household, string $name = '')
     {
@@ -57,5 +62,17 @@ class Room
     public function __toString(): string
     {
         return $this->name;
+    }
+
+    public function getLight(): ?LightLevel
+    {
+        return $this->light;
+    }
+
+    public function setLight(?LightLevel $light): static
+    {
+        $this->light = $light;
+
+        return $this;
     }
 }

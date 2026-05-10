@@ -56,6 +56,8 @@ final class PlantType extends AbstractType
                 'required' => false,
                 'placeholder' => 'No room',
                 'choice_label' => 'name',
+                'choice_attr' => fn (Room $r): array => null === $r->getLight() ? [] : ['data-light' => $r->getLight()->value],
+                'attr' => ['data-species-defaults-target' => 'room', 'data-action' => 'species-defaults#apply'],
                 'query_builder' => fn (EntityRepository $r): QueryBuilder => $r->createQueryBuilder('r')
                     ->where('r.household = :household')
                     ->setParameter('household', $household)

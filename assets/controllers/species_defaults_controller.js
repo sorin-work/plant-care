@@ -1,11 +1,12 @@
 import { Controller } from '@hotwired/stimulus';
 
 /*
- * When a species is picked, show its care hint and preselect its preferred
- * light, unless the light was already chosen by hand.
+ * When a species or room is picked, show the species' care hint and
+ * preselect a light level (the room's usual light wins over what the species
+ * prefers), unless the light was already chosen by hand.
  */
 export default class extends Controller {
-    static targets = ['species', 'light', 'hint'];
+    static targets = ['species', 'room', 'light', 'hint'];
 
     connect() {
         this.lightTouched = this.lightTarget.value !== '' && this.speciesTarget.value !== '';
@@ -17,9 +18,11 @@ export default class extends Controller {
     }
 
     apply() {
-        const option = this.speciesTarget.selectedOptions[0];
-        if (option?.dataset.light && !this.lightTouched) {
-            this.lightTarget.value = option.dataset.light;
+        const fromRoom = this.hasRoomTarget ? this.roomTarget.selectedOptions[0]?.dataset.light : null;
+        const fromSpecies = this.speciesTarget.selectedOptions[0]?.dataset.light;
+        const light = fromRoom || fromSpecies;
+        if (light && !this.lightTouched) {
+            this.lightTarget.value = light;
         }
         this.showHint();
     }
