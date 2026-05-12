@@ -33,9 +33,19 @@ final class CareTaskController extends AppController
     public function done(CareSchedule $schedule, Request $request, #[CurrentUser] User $user): Response
     {
         $this->assertAllowed($schedule, $request);
-        $this->tasks->markDone($schedule, $user, $this->clock->today($schedule->getPlant()->getHousehold()));
 
-        return $this->respond($request, $schedule, \sprintf('%s: %s done.', $schedule->getPlant()->getName(), mb_strtolower($schedule->getType()->label())));
+        // "I did it yesterday": done up to a week ago counts from that day.
+        $daysAgo = max(0, min(7, $request->request->getInt('days_ago')));
+        $day = $this->clock->today($schedule->getPlant()->getHousehold())->modify(\sprintf('-%d days', $daysAgo));
+        $this->tasks->markDone($schedule, $user, $day);
+
+        $when = match ($daysAgo) {
+            0 => '',
+            1 => ' yesterday',
+            default => \sprintf(' %d days ago', $daysAgo),
+        };
+
+        return $this->respond($request, $schedule, \sprintf('%s: %s done%s.', $schedule->getPlant()->getName(), mb_strtolower($schedule->getType()->label()), $when));
     }
 
     /**

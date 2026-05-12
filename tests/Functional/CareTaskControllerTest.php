@@ -212,4 +212,42 @@ final class CareTaskControllerTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(404);
     }
+
+    public function testDoneYesterday(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $plant = $this->createPlant($this->createHousehold($user), 'Monty');
+        $schedule = (new CareSchedule($plant, CareTaskType::Water, 7, new DateTimeImmutable('-1 day')))->setSeasonal(false);
+        $this->em()->persist($schedule);
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $crawler = $client->request('GET', '/');
+        $client->submit($crawler->selectButton('Did it yesterday')->form());
+        $client->followRedirect();
+
+        self::assertSelectorTextContains('.flash', 'Monty: water done yesterday.');
+        $reloaded = $this->em()->find(CareSchedule::class, $schedule->getId());
+        self::assertSame((new DateTimeImmutable('yesterday'))->format('Y-m-d'), $reloaded?->getLastDoneOn()?->format('Y-m-d'));
+        self::assertSame((new DateTimeImmutable('yesterday +7 days'))->format('Y-m-d'), $reloaded->getNextDueOn()->format('Y-m-d'));
+    }
+
+    public function testBackdatingIsLimitedToAWeek(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $plant = $this->createPlant($this->createHousehold($user), 'Monty');
+        $schedule = (new CareSchedule($plant, CareTaskType::Water, 7, new DateTimeImmutable('today')))->setSeasonal(false);
+        $this->em()->persist($schedule);
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $crawler = $client->request('GET', '/');
+        $form = $crawler->selectButton('Done')->form();
+        $client->request('POST', $form->getUri(), ['_token' => $form->get('_token')->getValue(), 'days_ago' => '400']);
+
+        $reloaded = $this->em()->find(CareSchedule::class, $schedule->getId());
+        self::assertSame((new DateTimeImmutable('-7 days'))->format('Y-m-d'), $reloaded?->getLastDoneOn()?->format('Y-m-d'));
+    }
 }

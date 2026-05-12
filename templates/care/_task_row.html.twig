@@ -22,7 +22,8 @@
                 <button type="submit" name="days" value="1">1 day</button>
                 <button type="submit" name="days" value="3">3 days</button>
                 <button type="submit" name="days" value="7">1 week</button>
-                <button type="submit" formaction="{{ path('task_skip', {id: schedule.id}) }}" class="menu-separator">Skip this time</button>
+                <button type="submit" formaction="{{ path('task_done', {id: schedule.id}) }}" name="days_ago" value="1" class="menu-separator">Did it yesterday</button>
+                <button type="submit" formaction="{{ path('task_skip', {id: schedule.id}) }}">Skip this time</button>
             </form>
         </details>
         <form method="post" action="{{ path('task_done', {id: schedule.id}) }}" class="inline" data-action="task#submit">
