@@ -27,13 +27,24 @@ services:
       DEFAULT_URI: http://localhost:${WEB_PORT:-4414}
       # Creates demo@example.com / demo-password with sample plants on first start.
       SEED_DEMO: ${SEED_DEMO:-true}
+      MAILER_DSN: ${MAILER_DSN:-smtp://mailpit:1025}
+      MAILER_FROM: ${MAILER_FROM:-plants@localhost}
     volumes:
       - photos:/var/www/app/var/uploads/photos
     depends_on:
       db:
         condition: service_healthy
+      mailpit:
+        condition: service_started
     ports:
       - '${WEB_PORT:-4414}:80'
+
+  # Catches all outgoing mail in development, web UI on MAILPIT_PORT.
+  mailpit:
+    image: axllent/mailpit:v1.27
+    restart: unless-stopped
+    ports:
+      - '${MAILPIT_PORT:-4415}:8025'
 
 volumes:
   db-data:

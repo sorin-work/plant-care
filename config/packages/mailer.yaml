@@ -1,0 +1,12 @@
+framework:
+    mailer:
+        dsn: '%env(MAILER_DSN)%'
+        envelope:
+            sender: '%env(MAILER_FROM)%'
+        headers:
+            From: 'Plant care <%env(MAILER_FROM)%>'
+
+when@test:
+    framework:
+        mailer:
+            dsn: 'null://null'
