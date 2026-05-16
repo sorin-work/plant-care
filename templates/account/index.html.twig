@@ -10,6 +10,7 @@
             <h2>Profile</h2>
             {{ form_start(profile) }}
                 {{ form_row(profile.displayName) }}
+                <div class="checkbox">{{ form_row(profile.digestEnabled) }}</div>
                 <p class="muted">Signed in as {{ app.user.email }}</p>
                 <button type="submit" class="btn">Save profile</button>
             {{ form_end(profile) }}

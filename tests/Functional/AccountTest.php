@@ -108,4 +108,17 @@ final class AccountTest extends WebTestCase
         self::assertResponseStatusCodeSame(422);
         self::assertSelectorTextContains('form[name=change_password]', 'not your current password');
     }
+
+    public function testOptInToDailyDigest(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $this->createHousehold($user);
+        $client->loginUser($user);
+
+        $client->request('GET', '/account');
+        $client->submitForm('Save profile', ['profile[digestEnabled]' => true]);
+
+        self::assertTrue($this->em()->find(User::class, $user->getId())?->isDigestEnabled());
+    }
 }

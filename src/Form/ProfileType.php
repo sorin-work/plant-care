@@ -4,6 +4,7 @@ namespace App\Form;
 
 use App\Entity\User;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -15,7 +16,12 @@ final class ProfileType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        $builder->add('displayName', TextType::class, ['label' => 'Your name', 'empty_data' => '']);
+        $builder
+            ->add('displayName', TextType::class, ['label' => 'Your name', 'empty_data' => ''])
+            ->add('digestEnabled', CheckboxType::class, [
+                'label' => 'Email me every morning when plants need care',
+                'required' => false,
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

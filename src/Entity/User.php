@@ -51,6 +51,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(nullable: true)]
     private ?DateTimeImmutable $apiTokenCreatedAt = null;
 
+    /** Wants a morning email with the tasks due that day. */
+    #[ORM\Column(options: ['default' => false])]
+    private bool $digestEnabled = false;
+
+    /** Day the last digest was sent, so it goes out once a day at most. */
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
+    private ?DateTimeImmutable $lastDigestOn = null;
+
     /** Secret part of the calendar feed URL. */
     #[ORM\Column(length: 32, unique: true, nullable: true)]
     private ?string $calendarToken = null;
@@ -177,5 +185,29 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function resetCalendarToken(): string
     {
         return $this->calendarToken = bin2hex(random_bytes(16));
+    }
+
+    public function isDigestEnabled(): bool
+    {
+        return $this->digestEnabled;
+    }
+
+    public function setDigestEnabled(bool $enabled): static
+    {
+        $this->digestEnabled = $enabled;
+
+        return $this;
+    }
+
+    public function getLastDigestOn(): ?DateTimeImmutable
+    {
+        return $this->lastDigestOn;
+    }
+
+    public function setLastDigestOn(?DateTimeImmutable $day): static
+    {
+        $this->lastDigestOn = $day;
+
+        return $this;
     }
 }
