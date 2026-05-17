@@ -5,7 +5,7 @@ Good morning, {{ user.displayName }}!
 
 {{ section.household.name }}
 {% for task in section.tasks %}
-- {{ task.schedule.type.label }} {{ task.plant.name }}{{ task.plant.room ? ' (' ~ task.plant.room.name ~ ')' }}{{ task.overdue ? ', ' ~ task.daysOverdue ~ ' days late' }}
+- {{ task.schedule.type.label }} {{ task.plant.name }}{{ task.plant.room ? ' (' ~ task.plant.room.name ~ ')' }}{{ task.overdue ? ', ' ~ task.daysOverdue ~ (task.daysOverdue == 1 ? ' day' : ' days') ~ ' late' }}
 {% endfor %}
 {% endfor %}
 

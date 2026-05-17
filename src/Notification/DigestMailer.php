@@ -6,6 +6,8 @@ use App\Care\DueTaskFinder;
 use App\Entity\User;
 use App\Household\HouseholdClock;
 use App\Repository\MembershipRepository;
+use DateTimeImmutable;
+use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mailer\MailerInterface;
@@ -23,6 +25,27 @@ final class DigestMailer
         private readonly MailerInterface $mailer,
         private readonly EntityManagerInterface $em,
     ) {
+    }
+
+    public const SEND_HOUR = 7;
+
+    /**
+     * True once it is SEND_HOUR in the user's first household and no digest
+     * went out yet that day. Meant to be called from an hourly job.
+     */
+    public function isDue(User $user, DateTimeImmutable $now): bool
+    {
+        $memberships = $this->memberships->findForUser($user);
+        if ([] === $memberships) {
+            return false;
+        }
+
+        $local = $now->setTimezone(new DateTimeZone($memberships[0]->getHousehold()->getTimezone()));
+        if ((int) $local->format('G') < self::SEND_HOUR) {
+            return false;
+        }
+
+        return $user->getLastDigestOn()?->format('Y-m-d') !== $local->format('Y-m-d');
     }
 
     /**
