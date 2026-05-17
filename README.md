@@ -61,6 +61,26 @@ php bin/console app:demo:seed
 symfony serve   # or: php -S localhost:8000 -t public
 ```
 
+## Configuration
+
+Set these as environment variables or in `.env.local`:
+
+| Variable       | Default                          | Description                                              |
+| -------------- | -------------------------------- | -------------------------------------------------------- |
+| `APP_ENV`      | `dev`                            | `prod` in the Docker image                               |
+| `APP_SECRET`   | (placeholder)                    | Random string used to sign sessions and CSRF tokens      |
+| `DATABASE_URL` | `mysql://plantcare:...@127.0.0.1` | MySQL 8 / MariaDB 10.11+ connection                     |
+| `DEFAULT_URI`  | `http://localhost:8000`          | Public URL, used for links in emails and the calendar    |
+| `PHOTO_DIR`    | `var/uploads/photos`             | Where uploaded photos are stored                         |
+| `MAILER_DSN`   | `null://null`                    | Outgoing mail; Docker sends to Mailpit                   |
+| `MAILER_FROM`  | `plants@localhost`               | Sender address of the daily email                        |
+| `SEED_DEMO`    | `true` (Docker only)             | Create the demo account on first start                   |
+
+The daily email goes out from `php bin/console app:digest:send`, which should run
+every hour (the `scheduler` service does this in Docker). Each user who opted in on
+the Account page gets one email a day after 7:00 in their household's timezone, and
+only when something is due.
+
 ## Tests
 
 ```bash
