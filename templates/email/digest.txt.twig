@@ -1,0 +1,13 @@
+Good morning, {{ user.displayName }}!
+
+{{ count }} {{ count == 1 ? 'task is' : 'tasks are' }} waiting for you today.
+{% for section in sections %}
+
+{{ section.household.name }}
+{% for task in section.tasks %}
+- {{ task.schedule.type.label }} {{ task.plant.name }}{{ task.plant.room ? ' (' ~ task.plant.room.name ~ ')' }}{{ task.overdue ? ', ' ~ task.daysOverdue ~ ' days late' }}
+{% endfor %}
+{% endfor %}
+
+Open today's list: {{ url('home') }}
+Email settings: {{ url('account') }}
