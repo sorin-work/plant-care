@@ -20,7 +20,7 @@
             <div class="form-row checkbox">
                 <label><input type="checkbox" name="_remember_me"> Keep me signed in</label>
             </div>
-            <input type="hidden" name="_csrf_token" data-controller="csrf-protection" value="{{ csrf_token('authenticate') }}">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
             <button type="submit" class="btn">Sign in</button>
         </form>
         <p class="muted">New here? <a href="{{ path('app_register') }}">Create an account</a></p>

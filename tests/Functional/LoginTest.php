@@ -67,4 +67,15 @@ final class LoginTest extends WebTestCase
 
         self::assertSelectorTextContains('.flash-error', 'Too many failed login attempts');
     }
+
+    public function testLoginNeedsTheTokenFromTheForm(): void
+    {
+        $client = $this->client();
+        $this->createUser('ion@example.com', 'Ion');
+
+        $client->request('POST', '/login', ['email' => 'ion@example.com', 'password' => 'password', '_csrf_token' => 'csrf-token']);
+        $client->followRedirect();
+
+        self::assertSelectorTextContains('.flash-error', 'Invalid CSRF token');
+    }
 }
