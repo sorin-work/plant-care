@@ -9,6 +9,7 @@ use App\Entity\User;
 use App\Enum\HouseholdRole;
 use App\Repository\MembershipRepository;
 use App\Repository\UserRepository;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 
 final class MemberManager
@@ -56,6 +57,26 @@ final class MemberManager
         $this->em->flush();
 
         return [$invitation, $token];
+    }
+
+    /**
+     * @throws MembershipException
+     */
+    public function accept(Invitation $invitation, User $user, DateTimeImmutable $now): Membership
+    {
+        if (!$invitation->isUsable($now)) {
+            throw new MembershipException('This invitation has expired or was already used.');
+        }
+        if (null !== $this->memberships->findOneFor($invitation->getHousehold(), $user)) {
+            throw new MembershipException(\sprintf('You are already a member of %s.', $invitation->getHousehold()->getName()));
+        }
+
+        $membership = new Membership($invitation->getHousehold(), $user, $invitation->getRole());
+        $invitation->markAccepted($now);
+        $this->em->persist($membership);
+        $this->em->flush();
+
+        return $membership;
     }
 
     /**

@@ -53,4 +53,58 @@ final class InvitationTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(410);
     }
+
+    public function testSignedInUserAcceptsInvitation(): void
+    {
+        $client = static::createClient();
+        $invitation = $this->invitation();
+        $me = $this->createUser('me@example.com', 'Me');
+        $this->createHousehold($me, 'Mine');
+        $client->loginUser($me);
+
+        $client->request('GET', '/invite/'.str_pad('ab', 40, '0'));
+        $client->submitForm('Join Flat');
+        $client->followRedirect();
+
+        self::assertSelectorTextContains('.flash', 'Welcome to Flat!');
+        self::assertSelectorTextContains('.household-switch option[selected]', 'Flat');
+        $membership = static::getContainer()->get(\App\Repository\MembershipRepository::class)->findOneFor($invitation->getHousehold(), $me);
+        self::assertSame(HouseholdRole::Editor, $membership?->getRole());
+    }
+
+    public function testInvitationWorksOnlyOnce(): void
+    {
+        $client = static::createClient();
+        $this->invitation();
+        $first = $this->createUser('first@example.com', 'First');
+        $client->loginUser($first);
+        $client->request('GET', '/invite/'.str_pad('ab', 40, '0'));
+        $client->submitForm('Join Flat');
+
+        $second = $this->createUser('second@example.com', 'Second');
+        $client->loginUser($second);
+        $client->request('GET', '/invite/'.str_pad('ab', 40, '0'));
+
+        self::assertResponseStatusCodeSame(410);
+    }
+
+    public function testNewUserSignsUpAndComesBackToTheInvitation(): void
+    {
+        $client = static::createClient();
+        $this->invitation();
+
+        $client->request('GET', '/invite/'.str_pad('ab', 40, '0'));
+        $client->clickLink('Create an account');
+        $client->submitForm('Create account', [
+            'registration_form[displayName]' => 'Newbie',
+            'registration_form[email]' => 'new@example.com',
+            'registration_form[plainPassword]' => 'long-enough-1',
+        ]);
+
+        self::assertResponseRedirects('http://localhost/invite/'.str_pad('ab', 40, '0'));
+        $client->followRedirect();
+        $client->submitForm('Join Flat');
+        $client->followRedirect();
+        self::assertSelectorTextContains('.flash', 'Welcome to Flat!');
+    }
 }

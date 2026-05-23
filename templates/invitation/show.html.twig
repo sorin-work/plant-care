@@ -10,7 +10,12 @@
                 {{ invitation.invitedBy ? invitation.invitedBy.displayName : 'Someone' }} invited you to look after
                 the plants of <strong>{{ invitation.household.name }}</strong> as {{ invitation.role.label|lower }}.
             </p>
-            {% if not app.user %}
+            {% if app.user %}
+                <form method="post" action="{{ path('invitation_accept', {token: token}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('accept-invitation') }}">
+                    <button type="submit" class="btn">Join {{ invitation.household.name }}</button>
+                </form>
+            {% else %}
                 <p class="actions">
                     <a href="{{ path('app_login') }}" class="btn btn-secondary">Sign in</a>
                     <a href="{{ path('app_register') }}" class="btn">Create an account</a>
