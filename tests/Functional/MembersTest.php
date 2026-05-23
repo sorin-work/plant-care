@@ -198,4 +198,24 @@ final class MembersTest extends WebTestCase
         self::assertNull($this->em()->find(\App\Entity\Household::class, $id));
         self::assertSelectorTextContains('.site-nav', "Me's home");
     }
+
+    public function testOwnerCreatesInviteLink(): void
+    {
+        $client = static::createClient();
+        $owner = $this->createUser('owner@example.com', 'Olga');
+        $this->createHousehold($owner, 'Flat');
+        $client->loginUser($owner);
+
+        $crawler = $client->request('GET', '/household/members');
+        $client->submit($crawler->selectButton('Create invite link')->form(['role' => 'caretaker']));
+        $crawler = $client->followRedirect();
+
+        $link = $crawler->filter('.invite-link')->text();
+        self::assertMatchesRegularExpression('#^http://localhost/invite/[a-f0-9]{40}$#', $link);
+        $invitation = static::getContainer()->get(\App\Repository\InvitationRepository::class)->findOneByToken(basename($link));
+        self::assertSame(HouseholdRole::Caretaker, $invitation?->getRole());
+
+        $client->request('GET', '/household/members');
+        self::assertSelectorNotExists('.invite-link');
+    }
 }

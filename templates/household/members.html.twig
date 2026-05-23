@@ -46,7 +46,25 @@
 
     {% if is_granted('HOUSEHOLD_MANAGE', household) %}
         <section class="card add-member">
-            <h2>Add someone</h2>
+            <h2>Invite with a link</h2>
+            {% for link in app.flashes('invite_link') %}
+                <div class="notice">
+                    <p>Send this link to the person you want to invite. It works once and expires in 7 days:</p>
+                    <code class="token-value invite-link">{{ link }}</code>
+                </div>
+            {% endfor %}
+            <form method="post" action="{{ path('household_invite') }}" class="inline-form">
+                <input type="hidden" name="_token" value="{{ csrf_token('invite') }}">
+                <label for="invite-role">Role</label>
+                <select name="role" id="invite-role">
+                    {% for role in enum_cases('App\\Enum\\HouseholdRole') %}
+                        <option value="{{ role.value }}" {{ role.value == 'editor' ? 'selected' }}>{{ role.label }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn">Create invite link</button>
+            </form>
+
+            <h2>Add someone with an account</h2>
             {{ form_start(form) }}
                 <div class="grid-fields">
                     {{ form_row(form.email) }}

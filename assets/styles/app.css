@@ -827,3 +827,19 @@ form.inline {
     margin-left: .75rem;
     font-size: .85rem;
 }
+
+.inline-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.inline-form label {
+    margin: 0;
+}
+
+.inline-form select {
+    width: auto;
+}

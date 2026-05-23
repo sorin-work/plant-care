@@ -3,7 +3,9 @@
 namespace App\Household;
 
 use App\Entity\Household;
+use App\Entity\Invitation;
 use App\Entity\Membership;
+use App\Entity\User;
 use App\Enum\HouseholdRole;
 use App\Repository\MembershipRepository;
 use App\Repository\UserRepository;
@@ -38,6 +40,22 @@ final class MemberManager
         $this->em->flush();
 
         return $membership;
+    }
+
+    /**
+     * Creates an invitation link; returns the invitation and the secret token
+     * that goes into the link (it is not stored).
+     *
+     * @return array{Invitation, string}
+     */
+    public function invite(Household $household, HouseholdRole $role, User $by): array
+    {
+        $token = bin2hex(random_bytes(20));
+        $invitation = new Invitation($household, $role, $token, $by);
+        $this->em->persist($invitation);
+        $this->em->flush();
+
+        return [$invitation, $token];
     }
 
     /**

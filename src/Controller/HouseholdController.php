@@ -21,6 +21,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
 #[Route('/household')]
@@ -101,6 +102,21 @@ final class HouseholdController extends AppController
             'memberships' => $memberships->findForHousehold($household),
             'form' => $form,
         ], new Response(status: $form->isSubmitted() ? 422 : 200));
+    }
+
+    #[Route('/invitations', name: 'household_invite', methods: ['POST'])]
+    public function invite(Request $request, MemberManager $manager, #[CurrentUser] User $user): Response
+    {
+        $household = $this->current->get();
+        $this->denyAccessUnlessGranted(Permission::MANAGE, $household);
+        $this->assertCsrf('invite', $request);
+
+        $role = HouseholdRole::tryFrom($request->request->getString('role')) ?? HouseholdRole::Editor;
+        [, $token] = $manager->invite($household, $role, $user);
+
+        $this->addFlash('invite_link', $this->generateUrl('invitation_show', ['token' => $token], UrlGeneratorInterface::ABSOLUTE_URL));
+
+        return $this->redirectToRoute('household_members');
     }
 
     #[Route('/members/{id}/role', name: 'household_member_role', methods: ['POST'], requirements: ['id' => '\d+'])]

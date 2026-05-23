@@ -56,7 +56,7 @@
             </div>
         </header>
         <main class="container">
-            {% for type, messages in app.flashes %}
+            {% for type, messages in app.flashes(['success', 'error']) %}
                 {% for message in messages %}
                     <div class="flash flash-{{ type }}" role="status" data-controller="dismiss">
                         <span>{{ message }}</span>
