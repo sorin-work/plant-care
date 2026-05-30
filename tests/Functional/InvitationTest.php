@@ -6,6 +6,7 @@ use App\Entity\Invitation;
 use App\Enum\HouseholdRole;
 use App\Tests\Support\Factory;
 use DateTimeImmutable;
+use LogicException;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 final class InvitationTest extends WebTestCase
@@ -106,5 +107,21 @@ final class InvitationTest extends WebTestCase
         $client->submitForm('Join Flat');
         $client->followRedirect();
         self::assertSelectorTextContains('.flash', 'Welcome to Flat!');
+    }
+
+    public function testOwnerSeesAndRevokesPendingInvitations(): void
+    {
+        $client = static::createClient();
+        $invitation = $this->invitation();
+        $client->loginUser($invitation->getInvitedBy() ?? throw new LogicException());
+
+        $crawler = $client->request('GET', '/household/members');
+        self::assertCount(1, $crawler->filter('.pending-invitations li'));
+        $client->submit($crawler->filter('.pending-invitations form')->form());
+        $client->followRedirect();
+
+        self::assertSelectorTextContains('.flash', 'no longer works');
+        $client->request('GET', '/invite/'.str_pad('ab', 40, '0'));
+        self::assertResponseStatusCodeSame(410);
     }
 }

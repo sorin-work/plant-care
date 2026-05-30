@@ -64,6 +64,24 @@
                 <button type="submit" class="btn">Create invite link</button>
             </form>
 
+            {% if invitations is not empty %}
+                <h3>Open invitations</h3>
+                <ul class="list pending-invitations">
+                    {% for invitation in invitations %}
+                        <li>
+                            <span>
+                                {{ invitation.role.label }}
+                                <span class="muted">by {{ invitation.invitedBy ? invitation.invitedBy.displayName : '—' }}, expires {{ invitation.expiresAt|date('j M') }}</span>
+                            </span>
+                            <form method="post" action="{{ path('household_invite_revoke', {id: invitation.id}) }}" class="inline">
+                                <input type="hidden" name="_token" value="{{ csrf_token('revoke-invitation-' ~ invitation.id) }}">
+                                <button type="submit" class="link danger">Revoke</button>
+                            </form>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
             <h2>Add someone with an account</h2>
             {{ form_start(form) }}
                 <div class="grid-fields">

@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Household;
+use App\Entity\Invitation;
 use App\Entity\Membership;
 use App\Entity\User;
 use App\Enum\HouseholdRole;
@@ -13,9 +14,11 @@ use App\Household\CurrentHousehold;
 use App\Household\HouseholdManager;
 use App\Household\MemberManager;
 use App\Household\MembershipException;
+use App\Repository\InvitationRepository;
 use App\Repository\MembershipRepository;
 use App\Security\Permission;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Clock\ClockInterface;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -75,7 +78,7 @@ final class HouseholdController extends AppController
     }
 
     #[Route('/members', name: 'household_members', methods: ['GET', 'POST'])]
-    public function members(Request $request, MembershipRepository $memberships, MemberManager $manager): Response
+    public function members(Request $request, MembershipRepository $memberships, MemberManager $manager, InvitationRepository $invitations, ClockInterface $clock): Response
     {
         $household = $this->current->get();
         $form = $this->createForm(AddMemberType::class);
@@ -100,6 +103,7 @@ final class HouseholdController extends AppController
         return $this->render('household/members.html.twig', [
             'household' => $household,
             'memberships' => $memberships->findForHousehold($household),
+            'invitations' => $this->isGranted(Permission::MANAGE, $household) ? $invitations->findPending($household, $clock->now()) : [],
             'form' => $form,
         ], new Response(status: $form->isSubmitted() ? 422 : 200));
     }
@@ -115,6 +119,19 @@ final class HouseholdController extends AppController
         [, $token] = $manager->invite($household, $role, $user);
 
         $this->addFlash('invite_link', $this->generateUrl('invitation_show', ['token' => $token], UrlGeneratorInterface::ABSOLUTE_URL));
+
+        return $this->redirectToRoute('household_members');
+    }
+
+    #[Route('/invitations/{id}/revoke', name: 'household_invite_revoke', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function revokeInvitation(Invitation $invitation, Request $request, EntityManagerInterface $em): Response
+    {
+        $this->denyAccessUnlessGranted(Permission::MANAGE, $invitation->getHousehold());
+        $this->assertCsrf('revoke-invitation-'.$invitation->getId(), $request);
+
+        $em->remove($invitation);
+        $em->flush();
+        $this->addFlash('success', 'The invitation link no longer works.');
 
         return $this->redirectToRoute('household_members');
     }
