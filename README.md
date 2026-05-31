@@ -19,8 +19,10 @@ plants in your home, with a daily list of what needs doing.
 ## Households and roles
 
 Everything (rooms, plants, schedules, journal) belongs to a household. You get one
-when you sign up and can start more, e.g. for the office. Members are added by the
-email of their account and get one of these roles:
+when you sign up and can start more, e.g. for the office. Owners invite people on
+the Members page, either with a one-time link (valid for 7 days, works for people
+without an account yet) or directly by the email of an existing account. Every
+member has one of these roles:
 
 | Role      | Can do                                                          |
 | --------- | --------------------------------------------------------------- |
