@@ -180,7 +180,14 @@ final class HouseholdController extends AppController
         $this->assertCsrf('leave-household', $request);
         $name = $membership->getHousehold()->getName();
 
-        $manager->leave($membership);
+        try {
+            $manager->leave($membership);
+        } catch (MembershipException $e) {
+            $this->addFlash('error', $e->getMessage());
+
+            return $this->redirectToRoute('household_members');
+        }
+
         $this->addFlash('success', \sprintf('You left %s.', $name));
 
         return $this->redirectToRoute('home');

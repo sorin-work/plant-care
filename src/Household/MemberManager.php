@@ -107,10 +107,16 @@ final class MemberManager
     /**
      * The user leaves the household. When nobody is left the household and
      * its plants are deleted.
+     *
+     * @throws MembershipException when the last owner leaves other members behind
      */
     public function leave(Membership $membership): void
     {
         $household = $membership->getHousehold();
+        if (\count($this->memberships->findForHousehold($household)) > 1) {
+            $this->ensureAnotherOwner($membership);
+        }
+
         $household->removeMembership($membership);
         $this->em->remove($membership);
 

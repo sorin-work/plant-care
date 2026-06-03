@@ -218,4 +218,35 @@ final class MembersTest extends WebTestCase
         $client->request('GET', '/household/members');
         self::assertSelectorNotExists('.invite-link');
     }
+
+    public function testLastOwnerCannotLeaveOthersBehind(): void
+    {
+        $client = static::createClient();
+        $owner = $this->createUser('owner@example.com', 'Olga');
+        $household = $this->createHousehold($owner, 'Flat');
+        $this->addMember($household, $this->createUser('vic@example.com', 'Victor'), HouseholdRole::Editor);
+        $client->loginUser($owner);
+
+        $client->request('GET', '/household/members');
+        $client->submitForm('Leave Flat');
+        $client->followRedirect();
+
+        self::assertSelectorTextContains('.flash-error', 'at least one owner');
+        self::assertSame(HouseholdRole::Owner, static::getContainer()->get(MembershipRepository::class)->findOneFor($household, $owner)?->getRole());
+    }
+
+    public function testOwnerCanLeaveWhenAnotherOwnerStays(): void
+    {
+        $client = static::createClient();
+        $owner = $this->createUser('owner@example.com', 'Olga');
+        $household = $this->createHousehold($owner, 'Flat');
+        $this->addMember($household, $this->createUser('co@example.com', 'Co'), HouseholdRole::Owner);
+        $client->loginUser($owner);
+
+        $client->request('GET', '/household/members');
+        $client->submitForm('Leave Flat');
+        $client->followRedirect();
+
+        self::assertSelectorTextContains('.flash', 'You left Flat.');
+    }
 }
