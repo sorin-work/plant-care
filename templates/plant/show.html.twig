@@ -58,6 +58,9 @@
                                     {% if schedule.lastDoneOn %}
                                         · last done {{ schedule.lastDoneOn|date('j M') }}
                                     {% endif %}
+                                    {% if schedule.notes %}
+                                        <br>{{ schedule.notes }}
+                                    {% endif %}
                                 </span>
                             </span>
                             <span class="actions">

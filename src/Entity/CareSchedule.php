@@ -46,6 +46,11 @@ class CareSchedule
     #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
     private ?DateTimeImmutable $snoozedUntil = null;
 
+    /** How to do it, e.g. "bottom water, 300 ml" or "half strength". */
+    #[ORM\Column(length: 160, nullable: true)]
+    #[Assert\Length(max: 160)]
+    private ?string $notes = null;
+
     public function __construct(Plant $plant, CareTaskType $type, int $intervalDays, DateTimeImmutable $nextDueOn)
     {
         $this->plant = $plant;
@@ -126,6 +131,19 @@ class CareSchedule
     public function setSnoozedUntil(?DateTimeImmutable $snoozedUntil): static
     {
         $this->snoozedUntil = $snoozedUntil;
+
+        return $this;
+    }
+
+    public function getNotes(): ?string
+    {
+        return $this->notes;
+    }
+
+    public function setNotes(?string $notes): static
+    {
+        $notes = null === $notes ? null : trim($notes);
+        $this->notes = '' === $notes ? null : $notes;
 
         return $this;
     }

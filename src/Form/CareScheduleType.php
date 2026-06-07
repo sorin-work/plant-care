@@ -7,6 +7,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -31,6 +32,11 @@ final class CareScheduleType extends AbstractType
                 'label' => 'Next due',
                 'widget' => 'single_text',
                 'input' => 'datetime_immutable',
+            ])
+            ->add('notes', TextType::class, [
+                'label' => 'How',
+                'required' => false,
+                'attr' => ['placeholder' => 'e.g. bottom water, about 300 ml'],
             ]);
     }
 

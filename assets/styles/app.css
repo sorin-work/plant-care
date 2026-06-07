@@ -852,3 +852,8 @@ form.inline {
 .inline-form input[type="password"] {
     width: auto;
 }
+
+.task-notes {
+    display: block;
+    font-size: .85rem;
+}

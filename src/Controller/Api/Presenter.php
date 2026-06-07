@@ -38,6 +38,7 @@ final class Presenter
             'nextDueOn' => $schedule->getNextDueOn()->format('Y-m-d'),
             'lastDoneOn' => $schedule->getLastDoneOn()?->format('Y-m-d'),
             'snoozedUntil' => $schedule->getSnoozedUntil()?->format('Y-m-d'),
+            'notes' => $schedule->getNotes(),
         ];
     }
 }

@@ -10,6 +10,7 @@
         {% else %}
             <span class="badge">due today</span>
         {% endif %}
+        {% if schedule.notes %}<span class="muted task-notes">{{ schedule.notes }}</span>{% endif %}
         <span class="task-status muted" data-task-target="status" aria-live="polite"></span>
     </span>
     {% if is_granted('HOUSEHOLD_CARE', schedule) %}

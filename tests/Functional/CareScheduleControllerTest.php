@@ -117,4 +117,21 @@ final class CareScheduleControllerTest extends WebTestCase
 
         self::assertSelectorTextContains('.schedules', 'Mist');
     }
+
+    public function testScheduleNotesShowOnToday(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $plant = $this->createPlant($this->createHousehold($user), 'Orchid');
+        $schedule = new CareSchedule($plant, CareTaskType::Water, 7, new DateTimeImmutable('today'));
+        $this->em()->persist($schedule);
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $client->request('GET', '/schedules/'.$schedule->getId().'/edit');
+        $client->submitForm('Save', ['care_schedule[notes]' => '  soak the bark for 10 minutes ']);
+        $client->request('GET', '/');
+
+        self::assertSelectorTextContains('.task-notes', 'soak the bark for 10 minutes');
+    }
 }
