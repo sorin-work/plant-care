@@ -121,4 +121,58 @@ final class AccountTest extends WebTestCase
 
         self::assertTrue($this->em()->find(User::class, $user->getId())?->isDigestEnabled());
     }
+
+    public function testDeleteAccount(): void
+    {
+        $client = static::createClient();
+        $hasher = static::getContainer()->get('security.user_password_hasher');
+        $user = $this->createUser('bye@example.com');
+        $user->setPassword($hasher->hashPassword($user, 'my-password'));
+        $solo = $this->createHousehold($user, 'Solo');
+        $soloId = $solo->getId();
+        $shared = $this->createHousehold($this->createUser('owner@example.com'), 'Shared');
+        $this->addMember($shared, $user, \App\Enum\HouseholdRole::Editor);
+        $client->loginUser($user);
+
+        $client->request('GET', '/account');
+        $client->submitForm('Delete my account', ['password' => 'my-password']);
+        self::assertResponseRedirects('/login');
+
+        $this->em()->clear();
+        self::assertNull(static::getContainer()->get(\App\Repository\UserRepository::class)->findOneByEmail('bye@example.com'));
+        self::assertNull($this->em()->find(\App\Entity\Household::class, $soloId));
+        self::assertNotNull($this->em()->find(\App\Entity\Household::class, $shared->getId()));
+    }
+
+    public function testDeleteAccountNeedsPassword(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser('stay@example.com');
+        $this->createHousehold($user);
+        $client->loginUser($user);
+
+        $client->request('GET', '/account');
+        $client->submitForm('Delete my account', ['password' => 'nope']);
+        $client->followRedirect();
+
+        self::assertSelectorTextContains('.flash-error', 'not deleted');
+    }
+
+    public function testLastOwnerOfSharedHouseholdCannotDeleteAccount(): void
+    {
+        $client = static::createClient();
+        $hasher = static::getContainer()->get('security.user_password_hasher');
+        $user = $this->createUser('owner@example.com');
+        $user->setPassword($hasher->hashPassword($user, 'my-password'));
+        $household = $this->createHousehold($user, 'Shared');
+        $this->addMember($household, $this->createUser('editor@example.com'), \App\Enum\HouseholdRole::Editor);
+        $client->loginUser($user);
+
+        $client->request('GET', '/account');
+        $client->submitForm('Delete my account', ['password' => 'my-password']);
+        $client->followRedirect();
+
+        self::assertSelectorTextContains('.flash-error', 'at least one owner');
+        self::assertNotNull(static::getContainer()->get(\App\Repository\UserRepository::class)->findOneByEmail('owner@example.com'));
+    }
 }

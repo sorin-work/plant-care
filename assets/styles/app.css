@@ -843,3 +843,12 @@ form.inline {
 .inline-form select {
     width: auto;
 }
+
+.danger-btn {
+    border-color: var(--red-600);
+    background: var(--red-600);
+}
+
+.inline-form input[type="password"] {
+    width: auto;
+}

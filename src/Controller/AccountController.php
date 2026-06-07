@@ -5,7 +5,11 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Form\ChangePasswordType;
 use App\Form\ProfileType;
+use App\Household\MemberManager;
+use App\Household\MembershipException;
+use App\Repository\MembershipRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -88,5 +92,41 @@ final class AccountController extends AppController
         $this->addFlash('success', $hadFeed ? 'Your calendar link was replaced. Update it in your calendar app.' : 'Your calendar link is ready.');
 
         return $this->redirectToRoute('account');
+    }
+
+    #[Route('/delete', name: 'account_delete', methods: ['POST'])]
+    public function delete(
+        Request $request,
+        #[CurrentUser] User $user,
+        UserPasswordHasherInterface $hasher,
+        MembershipRepository $memberships,
+        MemberManager $manager,
+        Security $security,
+    ): Response {
+        $this->assertCsrf('delete-account', $request);
+        if (!$hasher->isPasswordValid($user, $request->request->getString('password'))) {
+            $this->addFlash('error', 'That is not your password, your account was not deleted.');
+
+            return $this->redirectToRoute('account');
+        }
+
+        try {
+            $this->em->wrapInTransaction(function () use ($user, $memberships, $manager): void {
+                foreach ($memberships->findForUser($user) as $membership) {
+                    $manager->leave($membership);
+                }
+                $this->em->remove($user);
+                $this->em->flush();
+            });
+        } catch (MembershipException $e) {
+            $this->addFlash('error', $e->getMessage().' Your account was not deleted.');
+
+            return $this->redirectToRoute('account');
+        }
+
+        $security->logout(false);
+        $this->addFlash('success', 'Your account was deleted. Take care of your plants!');
+
+        return $this->redirectToRoute('app_login');
     }
 }
