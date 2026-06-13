@@ -50,7 +50,9 @@
                                 <span aria-hidden="true">{{ schedule.type.icon }}</span>
                                 <strong>{{ schedule.type.label }}</strong>
                                 <span class="muted">
-                                    every {{ schedule.intervalDays }} days{{ schedule.seasonal ? ', seasonal' }}
+                                    every {{ schedule.intervalDays }} days
+                                    {%- set now_days = current_interval(schedule) %}
+                                    {%- if now_days != schedule.intervalDays %} (now {{ now_days }} in {{ current_season(schedule) }}){% elseif schedule.seasonal %}, seasonal{% endif %}
                                     · next {{ schedule.nextDueOn|date('j M') }}
                                     {% if schedule.snoozedUntil and schedule.snoozedUntil > schedule.nextDueOn %}
                                         · snoozed until {{ schedule.snoozedUntil|date('j M') }}

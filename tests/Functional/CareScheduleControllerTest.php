@@ -7,9 +7,11 @@ use App\Enum\CareTaskType;
 use App\Tests\Support\Factory;
 use DateTimeImmutable;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\Clock\Test\ClockSensitiveTrait;
 
 final class CareScheduleControllerTest extends WebTestCase
 {
+    use ClockSensitiveTrait;
     use Factory;
 
     public function testEditSchedule(): void
@@ -133,5 +135,22 @@ final class CareScheduleControllerTest extends WebTestCase
         $client->request('GET', '/');
 
         self::assertSelectorTextContains('.task-notes', 'soak the bark for 10 minutes');
+    }
+
+    public function testPlantPageShowsIntervalForCurrentSeason(): void
+    {
+        static::mockTime('2026-01-15 10:00:00');
+        $client = static::createClient();
+        $user = $this->createUser();
+        $plant = $this->createPlant($this->createHousehold($user));
+        $this->em()->persist(new CareSchedule($plant, CareTaskType::Water, 10, new DateTimeImmutable('2026-01-20')));
+        $this->em()->persist((new CareSchedule($plant, CareTaskType::Repot, 540, new DateTimeImmutable('2026-09-20')))->setSeasonal(false));
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $client->request('GET', '/plants/'.$plant->getId());
+
+        self::assertSelectorTextContains('.schedules', 'every 10 days (now 15 in winter)');
+        self::assertSelectorTextContains('.schedules', 'every 540 days ·');
     }
 }
