@@ -9,9 +9,11 @@ use App\Repository\CareEventRepository;
 use App\Tests\Support\Factory;
 use DateTimeImmutable;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\Clock\Test\ClockSensitiveTrait;
 
 final class CareTaskControllerTest extends WebTestCase
 {
+    use ClockSensitiveTrait;
     use Factory;
 
     public function testMarkWateringDone(): void
@@ -249,5 +251,24 @@ final class CareTaskControllerTest extends WebTestCase
 
         $reloaded = $this->em()->find(CareSchedule::class, $schedule->getId());
         self::assertSame((new DateTimeImmutable('-7 days'))->format('Y-m-d'), $reloaded?->getLastDoneOn()?->format('Y-m-d'));
+    }
+
+    public function testDailyTaskLeavesTodayInSummer(): void
+    {
+        static::mockTime('2026-07-15 09:00:00');
+        $client = static::createClient();
+        $user = $this->createUser();
+        $plant = $this->createPlant($this->createHousehold($user), 'Basil');
+        $schedule = new CareSchedule($plant, CareTaskType::Water, 1, new DateTimeImmutable('2026-07-15'));
+        $this->em()->persist($schedule);
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $client->request('GET', '/');
+        $client->submitForm('Done');
+        $client->followRedirect();
+
+        self::assertSelectorTextContains('.empty', 'All caught up');
+        self::assertSame('2026-07-16', $this->em()->find(CareSchedule::class, $schedule->getId())?->getNextDueOn()->format('Y-m-d'));
     }
 }

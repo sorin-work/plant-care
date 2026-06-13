@@ -23,6 +23,11 @@ final class SeasonalIntervalCalculatorTest extends TestCase
         yield 'fertilize in winter is doubled' => [CareTaskType::Fertilize, 30, Season::Winter, 60];
         yield 'fertilize in summer keeps base' => [CareTaskType::Fertilize, 14, Season::Summer, 14];
         yield 'repot ignores seasons' => [CareTaskType::Repot, 540, Season::Winter, 540];
+        yield 'daily watering in summer stays daily' => [CareTaskType::Water, 1, Season::Summer, 1];
+        yield 'two days in summer' => [CareTaskType::Water, 2, Season::Summer, 2];
+        yield 'summer rounds to the nearest day' => [CareTaskType::Water, 5, Season::Summer, 4];
+        yield 'winter rounds half up' => [CareTaskType::Water, 7, Season::Winter, 11];
+        yield 'daily misting in winter stays daily' => [CareTaskType::Mist, 1, Season::Winter, 1];
         yield 'mist more often in winter' => [CareTaskType::Mist, 4, Season::Winter, 2];
         yield 'mist in summer keeps base' => [CareTaskType::Mist, 4, Season::Summer, 4];
     }

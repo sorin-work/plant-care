@@ -36,6 +36,8 @@ final class SeasonalIntervalCalculator
             throw new InvalidArgumentException('The base interval must be at least one day.');
         }
 
-        return (int) ($baseDays * $this->factor($type, $season));
+        // Round to the nearest day and never plan the next time for today:
+        // a daily task in summer is still a daily task.
+        return max(1, (int) round($baseDays * $this->factor($type, $season)));
     }
 }
