@@ -144,3 +144,41 @@ curl -X POST -H "Authorization: Bearer pc_..." -H "Content-Type: application/jso
 ```
 
 `days` must be a whole number from 1 to 14 (default 1).
+
+### `GET /api/plants/{id}/journal`
+
+Journal entries of a plant, newest first, 10 per page (`?page=2`).
+
+```json
+{
+  "page": 1,
+  "pages": 3,
+  "total": 24,
+  "entries": [
+    {
+      "id": 31,
+      "date": "2026-06-13",
+      "author": "Demo",
+      "note": "New leaf unfurling.",
+      "photo": "http://localhost:4414/photos/3f0c...e1.jpg"
+    }
+  ]
+}
+```
+
+`photo` is `null` or a URL that needs the same signed-in session or household
+membership as in the web app.
+
+### `POST /api/plants/{id}/journal`
+
+Adds a journal entry. `date` is optional and defaults to today in the household's
+timezone; it cannot be in the future. Returns the new entry with status 201.
+
+```bash
+curl -X POST -H "Authorization: Bearer pc_..." -H "Content-Type: application/json" \
+     -d '{"note": "Moved to the window", "date": "2026-06-13"}' \
+     http://localhost:4414/api/plants/4/journal
+```
+
+Schedules in all responses also contain `notes`, the free text on how to do the
+task (e.g. "bottom water, 300 ml"), or `null`.
