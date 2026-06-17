@@ -29,6 +29,7 @@
                     <tr>
                         <td>
                             <a href="{{ path('species_show', {id: s.id}) }}">{{ s.commonName }}</a>
+                            {% if s.custom %}<span class="tag">yours</span>{% endif %}
                             <div class="muted"><em>{{ s.scientificName }}</em></div>
                         </td>
                         <td>{{ s.light.label }}</td>

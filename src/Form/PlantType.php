@@ -7,6 +7,7 @@ use App\Entity\Plant;
 use App\Entity\Room;
 use App\Entity\Species;
 use App\Enum\LightLevel;
+use App\Repository\SpeciesRepository;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
@@ -49,7 +50,7 @@ final class PlantType extends AbstractType
                     ),
                 ],
                 'attr' => ['data-species-defaults-target' => 'species', 'data-action' => 'species-defaults#apply'],
-                'query_builder' => fn (EntityRepository $r): QueryBuilder => $r->createQueryBuilder('s')->orderBy('s.commonName', 'ASC'),
+                'query_builder' => fn (SpeciesRepository $r): QueryBuilder => $r->availableTo($household),
             ])
             ->add('room', EntityType::class, [
                 'class' => Room::class,

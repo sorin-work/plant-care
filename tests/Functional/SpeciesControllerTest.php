@@ -59,4 +59,31 @@ final class SpeciesControllerTest extends WebTestCase
 
         self::assertSelectorTextContains('.empty', 'No species match');
     }
+
+    public function testCustomSpeciesAreOnlyVisibleToTheirHousehold(): void
+    {
+        $client = static::createClient();
+        $this->seed();
+        $me = $this->createUser('me@example.com');
+        $mine = $this->createHousehold($me);
+        $other = $this->createHousehold($this->createUser('other@example.com'), 'Other');
+        $ownSpecies = (new Species('Grandma\'s begonia', 'Begonia x', 5, LightLevel::Medium))->setHousehold($mine);
+        $theirs = (new Species('Secret fern', 'Fernus secretus', 3, LightLevel::Low))->setHousehold($other);
+        $this->em()->persist($ownSpecies);
+        $this->em()->persist($theirs);
+        $this->em()->flush();
+        $client->loginUser($me);
+
+        $crawler = $client->request('GET', '/species');
+        $names = $crawler->filter('tbody tr td:first-child a')->each(fn ($a) => $a->text());
+        self::assertContains("Grandma's begonia", $names);
+        self::assertNotContains('Secret fern', $names);
+
+        $client->request('GET', '/species/'.$theirs->getId());
+        self::assertResponseStatusCodeSame(404);
+
+        $crawler = $client->request('GET', '/plants/new');
+        self::assertCount(0, $crawler->filter('#plant_species option[value="'.$theirs->getId().'"]'));
+        self::assertCount(1, $crawler->filter('#plant_species option[value="'.$ownSpecies->getId().'"]'));
+    }
 }

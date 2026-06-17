@@ -12,7 +12,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * A catalog entry with sensible care defaults for a kind of plant.
  */
 #[ORM\Entity(repositoryClass: SpeciesRepository::class)]
-#[ORM\UniqueConstraint(name: 'uniq_species_scientific_name', columns: ['scientific_name'])]
+#[ORM\UniqueConstraint(name: 'uniq_species_household_scientific_name', columns: ['household_id', 'scientific_name'])]
 class Species
 {
     #[ORM\Id]
@@ -48,6 +48,11 @@ class Species
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $careNotes = null;
+
+    /** Null for the shared catalog, set for species a household added itself. */
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
+    private ?Household $household = null;
 
     public function __construct(string $commonName, string $scientificName, int $waterIntervalDays, LightLevel $light)
     {
@@ -154,5 +159,22 @@ class Species
     public function __toString(): string
     {
         return \sprintf('%s (%s)', $this->commonName, $this->scientificName);
+    }
+
+    public function getHousehold(): ?Household
+    {
+        return $this->household;
+    }
+
+    public function setHousehold(?Household $household): static
+    {
+        $this->household = $household;
+
+        return $this;
+    }
+
+    public function isCustom(): bool
+    {
+        return null !== $this->household;
     }
 }
