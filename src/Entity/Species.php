@@ -6,12 +6,14 @@ use App\Enum\LightLevel;
 use App\Repository\SpeciesRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * A catalog entry with sensible care defaults for a kind of plant.
  */
 #[ORM\Entity(repositoryClass: SpeciesRepository::class)]
+#[UniqueEntity(fields: ['household', 'scientificName'], message: 'You already added a species with this name.', errorPath: 'scientificName', ignoreNull: false)]
 #[ORM\UniqueConstraint(name: 'uniq_species_household_scientific_name', columns: ['household_id', 'scientific_name'])]
 class Species
 {
@@ -26,6 +28,7 @@ class Species
 
     #[ORM\Column(length: 120)]
     #[Assert\NotBlank]
+    #[Assert\Length(max: 120)]
     private string $scientificName;
 
     #[ORM\Column]
@@ -176,5 +179,12 @@ class Species
     public function isCustom(): bool
     {
         return null !== $this->household;
+    }
+
+    public function setScientificName(string $scientificName): static
+    {
+        $this->scientificName = trim($scientificName);
+
+        return $this;
     }
 }

@@ -1,0 +1,24 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Add a species · {{ parent() }}{% endblock %}
+
+{% block body %}
+    <section class="card form-card">
+        <h1>Add a species</h1>
+        <p class="muted">Missing from the catalog? Add it for {{ current_household().name }} with the care it needs.</p>
+        {{ form_start(form) }}
+            <div class="grid-fields">
+                {{ form_row(form.commonName) }}
+                {{ form_row(form.scientificName) }}
+                {{ form_row(form.waterIntervalDays) }}
+                {{ form_row(form.fertilizeIntervalDays) }}
+                {{ form_row(form.repotIntervalMonths) }}
+                {{ form_row(form.light) }}
+            </div>
+            <div class="checkbox">{{ form_row(form.toxicToPets) }}</div>
+            {{ form_row(form.careNotes) }}
+            <button type="submit" class="btn">Add species</button>
+            <a href="{{ path('species_index') }}" class="btn btn-secondary">Cancel</a>
+        {{ form_end(form) }}
+    </section>
+{% endblock %}

@@ -86,4 +86,58 @@ final class SpeciesControllerTest extends WebTestCase
         self::assertCount(0, $crawler->filter('#plant_species option[value="'.$theirs->getId().'"]'));
         self::assertCount(1, $crawler->filter('#plant_species option[value="'.$ownSpecies->getId().'"]'));
     }
+
+    public function testAddCustomSpecies(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $household = $this->createHousehold($user);
+        $client->loginUser($user);
+
+        $client->request('GET', '/species/new');
+        $client->submitForm('Add species', [
+            'species[commonName]' => 'Rex begonia',
+            'species[scientificName]' => 'Begonia rex',
+            'species[waterIntervalDays]' => '5',
+            'species[fertilizeIntervalDays]' => '',
+            'species[repotIntervalMonths]' => '12',
+            'species[light]' => 'medium',
+        ]);
+        self::assertResponseRedirects();
+        $client->followRedirect();
+
+        self::assertSelectorTextContains('h1', 'Rex begonia');
+        self::assertSelectorTextContains('.facts', 'never');
+        $species = $this->em()->getRepository(Species::class)->findOneBy(['scientificName' => 'Begonia rex']);
+        self::assertSame($household->getId(), $species?->getHousehold()?->getId());
+    }
+
+    public function testDuplicateCustomSpeciesIsRejected(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $household = $this->createHousehold($user);
+        $this->em()->persist((new Species('Rex', 'Begonia rex', 5, LightLevel::Medium))->setHousehold($household));
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $client->request('GET', '/species/new');
+        $client->submitForm('Add species', ['species[commonName]' => 'Rex again', 'species[scientificName]' => 'Begonia rex']);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('form', 'already added');
+    }
+
+    public function testViewerCannotAddSpecies(): void
+    {
+        $client = static::createClient();
+        $household = $this->createHousehold($this->createUser('owner@example.com'));
+        $viewer = $this->createUser('viewer@example.com');
+        $this->addMember($household, $viewer, \App\Enum\HouseholdRole::Viewer);
+        $client->loginUser($viewer);
+
+        $client->request('GET', '/species/new');
+
+        self::assertResponseStatusCodeSame(403);
+    }
 }

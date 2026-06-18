@@ -3,9 +3,11 @@
 namespace App\Controller;
 
 use App\Entity\Species;
+use App\Form\SpeciesType;
 use App\Household\CurrentHousehold;
 use App\Repository\SpeciesRepository;
 use App\Security\Permission;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,6 +25,28 @@ final class SpeciesController extends AbstractController
             'species' => $species->search($query, $current->get()),
             'query' => $query,
         ]);
+    }
+
+    #[Route('/new', name: 'species_new', methods: ['GET', 'POST'])]
+    public function new(Request $request, CurrentHousehold $current, EntityManagerInterface $em): Response
+    {
+        $household = $current->get();
+        $this->denyAccessUnlessGranted(Permission::EDIT, $household);
+
+        $form = $this->createForm(SpeciesType::class, null, ['household' => $household]);
+        $form->handleRequest($request);
+        /** @var Species|null $species */
+        $species = $form->getData();
+
+        if ($form->isSubmitted() && $form->isValid() && null !== $species) {
+            $em->persist($species);
+            $em->flush();
+            $this->addFlash('success', \sprintf('%s was added to your species.', $species->getCommonName()));
+
+            return $this->redirectToRoute('species_show', ['id' => $species->getId()]);
+        }
+
+        return $this->render('species/new.html.twig', ['form' => $form], new Response(status: $form->isSubmitted() ? 422 : 200));
     }
 
     #[Route('/{id}', name: 'species_show', methods: ['GET'], requirements: ['id' => '\d+'])]
