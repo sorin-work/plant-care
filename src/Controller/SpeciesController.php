@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Species;
 use App\Form\SpeciesType;
 use App\Household\CurrentHousehold;
+use App\Repository\PlantRepository;
 use App\Repository\SpeciesRepository;
 use App\Security\Permission;
 use Doctrine\ORM\EntityManagerInterface;
@@ -50,12 +51,15 @@ final class SpeciesController extends AbstractController
     }
 
     #[Route('/{id}', name: 'species_show', methods: ['GET'], requirements: ['id' => '\d+'])]
-    public function show(Species $species): Response
+    public function show(Species $species, PlantRepository $plants, CurrentHousehold $current): Response
     {
         if (null !== $species->getHousehold() && !$this->isGranted(Permission::VIEW, $species->getHousehold())) {
             throw $this->createNotFoundException();
         }
 
-        return $this->render('species/show.html.twig', ['species' => $species]);
+        return $this->render('species/show.html.twig', [
+            'species' => $species,
+            'plants' => $plants->findBy(['household' => $current->get(), 'species' => $species, 'archivedAt' => null], ['name' => 'ASC']),
+        ]);
     }
 }

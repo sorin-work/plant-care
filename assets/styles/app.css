@@ -857,3 +857,13 @@ form.inline {
     display: block;
     font-size: .85rem;
 }
+
+.species-plants {
+    margin-top: 1.5rem;
+}
+
+.species-plants ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}

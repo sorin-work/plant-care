@@ -140,4 +140,22 @@ final class SpeciesControllerTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(403);
     }
+
+    public function testSpeciesPageListsYourPlants(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $household = $this->createHousehold($user);
+        $species = new Species('Monstera', 'Monstera deliciosa', 7, LightLevel::BrightIndirect);
+        $this->em()->persist($species);
+        $this->createPlant($household, 'Monty')->setSpecies($species);
+        $this->createPlant($this->createHousehold($this->createUser('x@example.com')), 'Not mine')->setSpecies($species);
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $client->request('GET', '/species/'.$species->getId());
+
+        self::assertSelectorTextContains('.species-plants', 'Monty');
+        self::assertSelectorTextNotContains('.species-plants', 'Not mine');
+    }
 }

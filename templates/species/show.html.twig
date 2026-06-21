@@ -18,4 +18,17 @@
             <p>{{ species.careNotes }}</p>
         {% endif %}
     </section>
+
+    <section class="card species-plants">
+        <h2>Your {{ species.commonName|lower }} plants</h2>
+        {% if plants is empty %}
+            <p class="muted">None in {{ current_household().name }} yet.</p>
+        {% else %}
+            <ul class="tags">
+                {% for plant in plants %}
+                    <li class="tag"><a href="{{ path('plant_show', {id: plant.id}) }}">{{ plant.name }}</a></li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </section>
 {% endblock %}
