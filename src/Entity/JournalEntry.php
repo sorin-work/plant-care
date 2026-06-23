@@ -13,6 +13,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 #[ORM\Entity(repositoryClass: JournalEntryRepository::class)]
 #[ORM\Index(name: 'idx_journal_plant_date', columns: ['plant_id', 'written_on'])]
+#[ORM\Index(name: 'idx_journal_photo', columns: ['photo'])]
 class JournalEntry
 {
     #[ORM\Id]

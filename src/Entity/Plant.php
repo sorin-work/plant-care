@@ -14,6 +14,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: PlantRepository::class)]
 #[ORM\Index(name: 'idx_plant_household_archived', columns: ['household_id', 'archived_at'])]
+#[ORM\Index(name: 'idx_plant_cover_photo', columns: ['cover_photo'])]
 class Plant
 {
     #[ORM\Id]
