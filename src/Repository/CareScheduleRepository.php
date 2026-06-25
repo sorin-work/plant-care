@@ -27,7 +27,9 @@ class CareScheduleRepository extends ServiceEntityRepository
     {
         /** @var list<CareSchedule> $result */
         $result = $this->createQueryBuilder('s')
+            ->addSelect('p', 'r')
             ->join('s.plant', 'p')
+            ->leftJoin('p.room', 'r')
             ->where('p.household = :household')
             ->andWhere('p.archivedAt IS NULL')
             ->andWhere('s.nextDueOn <= :day')
