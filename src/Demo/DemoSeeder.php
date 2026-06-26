@@ -6,10 +6,12 @@ use App\Care\CareScheduler;
 use App\Care\ScheduleFactory;
 use App\Entity\CareEvent;
 use App\Entity\JournalEntry;
+use App\Entity\Membership;
 use App\Entity\Plant;
 use App\Entity\Room;
 use App\Entity\User;
 use App\Enum\CareAction;
+use App\Enum\HouseholdRole;
 use App\Enum\LightLevel;
 use App\Household\HouseholdManager;
 use App\Repository\SpeciesRepository;
@@ -26,6 +28,7 @@ final class DemoSeeder
 {
     public const EMAIL = 'demo@example.com';
     public const PASSWORD = 'demo-password';
+    public const CARETAKER_EMAIL = 'sam@example.com';
 
     /**
      * name, scientific name of the species, room, light, days owned, notes.
@@ -101,6 +104,27 @@ final class DemoSeeder
             $this->em->persist($plant);
             $this->scheduleFactory->createDefaults($plant, $today->modify(\sprintf('-%d days', min($daysOwned, 120))));
             $this->simulateHistory($plant, $user, $today, min($daysOwned, 120));
+        }
+
+        // A flatmate who looks after the plants while the demo user is away.
+        $sam = (new User())->setEmail(self::CARETAKER_EMAIL)->setDisplayName('Sam');
+        $sam->setPassword($this->hasher->hashPassword($sam, self::PASSWORD));
+        $this->em->persist($sam);
+        $this->em->persist(new Membership($household, $sam, HouseholdRole::Caretaker));
+
+        // Sam's office, shared with the demo user as an editor.
+        $office = $this->households->create($sam, 'Office');
+        $office->setTimezone('Europe/Berlin');
+        $this->em->persist(new Membership($office, $user, HouseholdRole::Editor));
+        $desk = new Room($office, 'Open space');
+        $this->em->persist($desk);
+        foreach ([['Ficus', 'Ficus elastica'], ['Zed II', 'Zamioculcas zamiifolia'], ['Parlor palm', 'Chamaedorea elegans']] as [$name, $scientific]) {
+            $plant = (new Plant($office))->setName($name)->setRoom($desk)
+                ->setSpecies($this->species->findOneByScientificName($scientific))
+                ->setAcquiredOn($today->modify('-200 days'));
+            $this->em->persist($plant);
+            $this->scheduleFactory->createDefaults($plant, $today->modify('-60 days'));
+            $this->simulateHistory($plant, $sam, $today, 60);
         }
 
         $this->em->flush();
