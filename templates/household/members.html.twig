@@ -8,7 +8,10 @@
             <h1>Members</h1>
             <p class="muted">People who share the plants of {{ household.name }}.</p>
         </div>
-        <a href="{{ path('household_new') }}" class="btn btn-secondary">New household</a>
+        <span class="actions">
+            <a href="{{ path('household_care_sheet') }}">Care sheet for a plant sitter</a>
+            <a href="{{ path('household_new') }}" class="btn btn-secondary">New household</a>
+        </span>
     </div>
 
     <ul class="list card members">

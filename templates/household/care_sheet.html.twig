@@ -1,0 +1,54 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Care sheet · {{ household.name }} · {{ parent() }}{% endblock %}
+
+{% block body %}
+    <div class="page-header">
+        <div>
+            <h1>Care sheet for {{ household.name }}</h1>
+            <p class="muted">For whoever looks after the plants. Intervals are for the current season.</p>
+        </div>
+        <button type="button" class="btn btn-secondary no-print" onclick="window.print()">Print</button>
+    </div>
+
+    {% for room, plants in rooms %}
+        <section class="care-sheet-room">
+            <h2>{{ room }}</h2>
+            <table class="table">
+                <thead>
+                    <tr><th>Plant</th><th>Care</th><th>Next</th><th>Notes</th></tr>
+                </thead>
+                <tbody>
+                    {% for plant in plants %}
+                        <tr>
+                            <td>
+                                <strong>{{ plant.name }}</strong>
+                                {% if plant.species %}<div class="muted">{{ plant.species.commonName }}</div>{% endif %}
+                                {% if plant.species and plant.species.toxicToPets %}<div class="danger">Toxic to pets</div>{% endif %}
+                            </td>
+                            <td>
+                                {% for schedule in plant.schedules|filter(s => s.type.value != 'repot') %}
+                                    <div>{{ schedule.type.label }} every {{ current_interval(schedule) }} days</div>
+                                {% else %}
+                                    —
+                                {% endfor %}
+                            </td>
+                            <td>
+                                {% for schedule in plant.schedules|filter(s => s.type.value != 'repot') %}
+                                    <div>{{ schedule.nextDueOn|date('D j M') }}</div>
+                                {% endfor %}
+                            </td>
+                            <td>
+                                {% for schedule in plant.schedules|filter(s => s.notes) %}
+                                    <div>{{ schedule.type.label }}: {{ schedule.notes }}</div>
+                                {% endfor %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    {% else %}
+        <p class="empty">No plants yet.</p>
+    {% endfor %}
+{% endblock %}

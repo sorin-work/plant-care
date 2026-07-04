@@ -16,6 +16,8 @@ use App\Household\MemberManager;
 use App\Household\MembershipException;
 use App\Repository\InvitationRepository;
 use App\Repository\MembershipRepository;
+use App\Repository\PlantRepository;
+use App\Repository\RoomRepository;
 use App\Security\Permission;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Clock\ClockInterface;
@@ -75,6 +77,25 @@ final class HouseholdController extends AppController
         return $this->render('household/new.html.twig', [
             'form' => $form,
         ], new Response(status: $form->isSubmitted() ? 422 : 200));
+    }
+
+    /**
+     * Everything a plant sitter needs on one page, meant to be printed.
+     */
+    #[Route('/care-sheet', name: 'household_care_sheet', methods: ['GET'])]
+    public function careSheet(PlantRepository $plants, RoomRepository $rooms): Response
+    {
+        $household = $this->current->get();
+        $byRoom = [];
+        foreach ($plants->findActive($household) as $plant) {
+            $byRoom[$plant->getRoom()?->getName() ?? 'No room'][] = $plant;
+        }
+        uksort($byRoom, static fn (string $a, string $b): int => ['No room' === $a, $a] <=> ['No room' === $b, $b]);
+
+        return $this->render('household/care_sheet.html.twig', [
+            'household' => $household,
+            'rooms' => $byRoom,
+        ]);
     }
 
     #[Route('/members', name: 'household_members', methods: ['GET', 'POST'])]
