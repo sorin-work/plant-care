@@ -6,6 +6,7 @@ use App\Entity\JournalEntry;
 use App\Entity\Plant;
 use App\Entity\User;
 use App\Form\JournalEntryType;
+use App\Household\CurrentHousehold;
 use App\Household\HouseholdClock;
 use App\Photo\InvalidPhotoException;
 use App\Photo\PhotoStorage;
@@ -27,6 +28,14 @@ final class JournalController extends AppController
     public function __construct(
         private readonly EntityManagerInterface $em,
     ) {
+    }
+
+    #[Route('/journal', name: 'journal_feed', methods: ['GET'])]
+    public function feed(JournalEntryRepository $entries, CurrentHousehold $current): Response
+    {
+        return $this->render('journal/feed.html.twig', [
+            'entries' => $entries->findRecentForHousehold($current->get()),
+        ]);
     }
 
     #[Route('/plants/{id}/journal', name: 'journal_index', methods: ['GET'], requirements: ['id' => '\d+'])]

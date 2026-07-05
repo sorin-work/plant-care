@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Household;
 use App\Entity\JournalEntry;
 use App\Entity\Plant;
 use App\Pagination\Page;
@@ -61,6 +62,30 @@ class JournalEntryRepository extends ServiceEntityRepository
             ->setParameter('plant', $plant)
             ->orderBy('j.writtenOn', 'ASC')
             ->addOrderBy('j.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        return $result;
+    }
+
+    /**
+     * Latest entries of all active plants of a household.
+     *
+     * @return list<JournalEntry>
+     */
+    public function findRecentForHousehold(Household $household, int $limit = 30): array
+    {
+        /** @var list<JournalEntry> $result */
+        $result = $this->createQueryBuilder('j')
+            ->addSelect('p', 'a')
+            ->join('j.plant', 'p')
+            ->leftJoin('j.author', 'a')
+            ->where('p.household = :household')
+            ->andWhere('p.archivedAt IS NULL')
+            ->setParameter('household', $household)
+            ->orderBy('j.writtenOn', 'DESC')
+            ->addOrderBy('j.id', 'DESC')
+            ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
 

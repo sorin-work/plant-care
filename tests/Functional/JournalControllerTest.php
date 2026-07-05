@@ -254,4 +254,21 @@ final class JournalControllerTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(403);
     }
+
+    public function testHouseholdFeed(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $household = $this->createHousehold($user);
+        $this->em()->persist((new JournalEntry($this->createPlant($household, 'Monty'), $user, new DateTimeImmutable('2026-07-01')))->setNote('Older note'));
+        $this->em()->persist((new JournalEntry($this->createPlant($household, 'Fern'), $user, new DateTimeImmutable('2026-07-04')))->setNote('Newer note'));
+        $this->em()->persist((new JournalEntry($this->createPlant($this->createHousehold($this->createUser('x@example.com')), 'Theirs'), null, new DateTimeImmutable('2026-07-04')))->setNote('Hidden'));
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $crawler = $client->request('GET', '/journal');
+
+        self::assertSame(['Fern', 'Monty'], $crawler->filter('.feed-plant')->each(fn ($p) => $p->text()));
+        self::assertSelectorTextNotContains('main', 'Hidden');
+    }
 }

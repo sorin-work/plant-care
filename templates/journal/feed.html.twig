@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Journal · {{ parent() }}{% endblock %}
+
+{% block body %}
+    <div class="page-header">
+        <div>
+            <h1>Journal</h1>
+            <p class="muted">What happened lately with the plants of {{ current_household().name }}.</p>
+        </div>
+    </div>
+
+    <section class="card">
+        {% for entry in entries %}
+            <div class="feed-entry">
+                <p class="feed-plant"><a href="{{ path('journal_index', {id: entry.plant.id}) }}">{{ entry.plant.name }}</a></p>
+                {{ include('journal/_entry.html.twig') }}
+            </div>
+        {% else %}
+            <p class="empty">No journal entries yet. Write one on a plant's page.</p>
+        {% endfor %}
+    </section>
+{% endblock %}

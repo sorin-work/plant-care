@@ -21,6 +21,7 @@
                         <a href="{{ path('home') }}" {{ route == 'home' ? 'aria-current="page"' }}>Today</a>
                         <a href="{{ path('upcoming') }}" {{ route == 'upcoming' ? 'aria-current="page"' }}>Coming up</a>
                         <a href="{{ path('plant_index') }}" {{ route starts with 'plant_' ? 'aria-current="page"' }}>Plants</a>
+                        <a href="{{ path('journal_feed') }}" {{ route == 'journal_feed' ? 'aria-current="page"' }}>Journal</a>
                         <a href="{{ path('room_index') }}" {{ route starts with 'room_' ? 'aria-current="page"' }}>Rooms</a>
                         <a href="{{ path('species_index') }}" {{ route starts with 'species_' ? 'aria-current="page"' }}>Species</a>
                         <a href="{{ path('household_members') }}" {{ route == 'household_members' ? 'aria-current="page"' }}>Members</a>

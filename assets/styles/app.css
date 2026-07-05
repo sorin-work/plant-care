@@ -903,3 +903,12 @@ form.inline {
         text-decoration: none;
     }
 }
+
+.feed-plant {
+    margin: .75rem 0 0;
+    font-weight: 600;
+}
+
+.feed-entry .journal-entry {
+    padding-top: .25rem;
+}
