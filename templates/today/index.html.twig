@@ -47,5 +47,29 @@
             </ul>
         </section>
     {% endfor %}
+
+    {% if snoozed is not empty %}
+        <details class="snoozed">
+            <summary>{{ snoozed|length }} snoozed</summary>
+            <ul class="list card">
+                {% for schedule in snoozed %}
+                    <li>
+                        <span>
+                            {{ schedule.type.icon }} {{ schedule.type.label }}
+                            <a href="{{ path('plant_show', {id: schedule.plant.id}) }}">{{ schedule.plant.name }}</a>
+                            <span class="muted">until {{ schedule.snoozedUntil|date('D j M') }}</span>
+                        </span>
+                        {% if is_granted('HOUSEHOLD_CARE', schedule) %}
+                            <form method="post" action="{{ path('task_wake', {id: schedule.id}) }}" class="inline">
+                                <input type="hidden" name="_token" value="{{ csrf_token('task-' ~ schedule.id) }}">
+                                <input type="hidden" name="_back" value="{{ path('home') }}">
+                                <button type="submit" class="link">Back to today</button>
+                            </form>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </details>
+    {% endif %}
     </div>
 {% endblock %}

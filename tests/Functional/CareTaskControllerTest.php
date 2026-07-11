@@ -271,4 +271,25 @@ final class CareTaskControllerTest extends WebTestCase
         self::assertSelectorTextContains('.empty', 'All caught up');
         self::assertSame('2026-07-16', $this->em()->find(CareSchedule::class, $schedule->getId())?->getNextDueOn()->format('Y-m-d'));
     }
+
+    public function testSnoozedTasksCanBeWokenUp(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $plant = $this->createPlant($this->createHousehold($user), 'Lily');
+        $this->em()->persist((new CareSchedule($plant, CareTaskType::Water, 5, new DateTimeImmutable('-1 day')))->setSnoozedUntil(new DateTimeImmutable('+2 days')));
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $client->request('GET', '/');
+        self::assertSelectorTextContains('.snoozed summary', '1 snoozed');
+        self::assertSelectorNotExists('.tasks');
+
+        $client->submitForm('Back to today');
+        $client->followRedirect();
+
+        self::assertSelectorTextContains('.flash', 'Lily is back on the list.');
+        self::assertSelectorTextContains('.tasks', 'Lily');
+        self::assertSelectorNotExists('.snoozed');
+    }
 }

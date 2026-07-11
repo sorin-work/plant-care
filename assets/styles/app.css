@@ -912,3 +912,13 @@ form.inline {
 .feed-entry .journal-entry {
     padding-top: .25rem;
 }
+
+.snoozed {
+    margin-top: 2rem;
+}
+
+.snoozed summary {
+    cursor: pointer;
+    color: var(--gray-500);
+    margin-bottom: .5rem;
+}

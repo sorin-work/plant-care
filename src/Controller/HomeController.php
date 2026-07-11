@@ -6,6 +6,7 @@ use App\Care\DueTaskFinder;
 use App\Care\TaskGrouper;
 use App\Household\CurrentHousehold;
 use App\Household\HouseholdClock;
+use App\Repository\CareScheduleRepository;
 use App\Repository\PlantRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -14,7 +15,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class HomeController extends AbstractController
 {
     #[Route('/', name: 'home', methods: ['GET'])]
-    public function index(CurrentHousehold $current, DueTaskFinder $finder, TaskGrouper $grouper, HouseholdClock $clock, PlantRepository $plants): Response
+    public function index(CurrentHousehold $current, DueTaskFinder $finder, TaskGrouper $grouper, HouseholdClock $clock, PlantRepository $plants, CareScheduleRepository $schedules): Response
     {
         $household = $current->get();
         $today = $clock->today($household);
@@ -24,6 +25,7 @@ final class HomeController extends AbstractController
             'today' => $today,
             'count' => \count($tasks),
             'groups' => $grouper->byRoom($tasks),
+            'snoozed' => $schedules->findSnoozed($household, $today),
             'has_plants' => 0 === \count($tasks) ? [] !== $plants->findActive($household) : true,
         ]);
     }

@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\Household\HouseholdClock;
 use App\Repository\CareScheduleRepository;
 use App\Security\Permission;
+use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -76,6 +77,16 @@ final class CareTaskController extends AppController
         $this->tasks->skip($schedule, $user, $this->clock->today($schedule->getPlant()->getHousehold()));
 
         return $this->respond($request, $schedule, \sprintf('Skipped %s for %s this time.', mb_strtolower($schedule->getType()->label()), $schedule->getPlant()->getName()));
+    }
+
+    #[Route('/{id}/wake', name: 'task_wake', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function wake(CareSchedule $schedule, Request $request, EntityManagerInterface $em): Response
+    {
+        $this->assertAllowed($schedule, $request);
+        $schedule->setSnoozedUntil(null);
+        $em->flush();
+
+        return $this->respond($request, $schedule, \sprintf('%s is back on the list.', $schedule->getPlant()->getName()));
     }
 
     #[Route('/{id}/snooze', name: 'task_snooze', methods: ['POST'], requirements: ['id' => '\d+'])]

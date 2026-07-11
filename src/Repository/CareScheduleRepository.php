@@ -94,4 +94,28 @@ class CareScheduleRepository extends ServiceEntityRepository
 
         return $result;
     }
+
+    /**
+     * Schedules that would be due but are snoozed past the day.
+     *
+     * @return list<CareSchedule>
+     */
+    public function findSnoozed(Household $household, DateTimeImmutable $day): array
+    {
+        /** @var list<CareSchedule> $result */
+        $result = $this->createQueryBuilder('s')
+            ->addSelect('p')
+            ->join('s.plant', 'p')
+            ->where('p.household = :household')
+            ->andWhere('p.archivedAt IS NULL')
+            ->andWhere('s.nextDueOn <= :day')
+            ->andWhere('s.snoozedUntil > :day')
+            ->setParameter('household', $household)
+            ->setParameter('day', $day->format('Y-m-d'))
+            ->orderBy('s.snoozedUntil', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        return $result;
+    }
 }
