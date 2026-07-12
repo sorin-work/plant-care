@@ -101,7 +101,7 @@ final class CareScheduleControllerTest extends WebTestCase
         $client->request('GET', '/plants/'.$plant->getId());
 
         self::assertSelectorTextContains('.schedules', 'snoozed until 12 Jan');
-        self::assertSelectorTextContains('.schedules', 'last done 3 Jan');
+        self::assertSelectorExists('.schedules time[title="3 Jan 2026"]');
     }
 
     public function testAddMistingReminders(): void

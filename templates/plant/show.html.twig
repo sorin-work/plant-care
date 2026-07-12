@@ -53,12 +53,12 @@
                                     every {{ schedule.intervalDays }} days
                                     {%- set now_days = current_interval(schedule) %}
                                     {%- if now_days != schedule.intervalDays %} (now {{ now_days }} in {{ current_season(schedule) }}){% elseif schedule.seasonal %}, seasonal{% endif %}
-                                    · next {{ schedule.nextDueOn|date('j M') }}
+                                    · next <time datetime="{{ schedule.nextDueOn|date('Y-m-d') }}" title="{{ schedule.nextDueOn|date('j M Y') }}">{{ schedule.nextDueOn|ago(plant.household) }}</time>
                                     {% if schedule.snoozedUntil and schedule.snoozedUntil > schedule.nextDueOn %}
                                         · snoozed until {{ schedule.snoozedUntil|date('j M') }}
                                     {% endif %}
                                     {% if schedule.lastDoneOn %}
-                                        · last done {{ schedule.lastDoneOn|date('j M') }}
+                                        · last done <time datetime="{{ schedule.lastDoneOn|date('Y-m-d') }}" title="{{ schedule.lastDoneOn|date('j M Y') }}">{{ schedule.lastDoneOn|ago(plant.household) }}</time>
                                     {% endif %}
                                     {% if schedule.notes %}
                                         <br>{{ schedule.notes }}
