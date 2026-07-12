@@ -5,8 +5,12 @@ namespace App\Twig;
 use App\Care\CareScheduler;
 use App\Care\SeasonResolver;
 use App\Entity\CareSchedule;
+use App\Entity\Household;
 use App\Household\HouseholdClock;
+use App\Util\RelativeDay;
+use DateTimeInterface;
 use Twig\Extension\AbstractExtension;
+use Twig\TwigFilter;
 use Twig\TwigFunction;
 
 final class CareExtension extends AbstractExtension
@@ -24,6 +28,21 @@ final class CareExtension extends AbstractExtension
             new TwigFunction('current_interval', $this->currentInterval(...)),
             new TwigFunction('current_season', $this->currentSeason(...)),
         ];
+    }
+
+    public function getFilters(): array
+    {
+        return [
+            new TwigFilter('ago', $this->ago(...)),
+        ];
+    }
+
+    /**
+     * Relative day as seen by the household the schedule or plant belongs to.
+     */
+    public function ago(DateTimeInterface $date, Household $household): string
+    {
+        return RelativeDay::format($date, $this->clock->today($household));
     }
 
     /**
