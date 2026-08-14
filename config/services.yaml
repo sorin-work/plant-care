@@ -11,3 +11,8 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
+
+when@test:
+    services:
+        App\Tests\Support\Doctrine\QueryCounter:
+            tags: [doctrine.middleware]

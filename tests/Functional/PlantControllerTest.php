@@ -298,4 +298,28 @@ final class PlantControllerTest extends WebTestCase
         $crawler = $client->request('GET', '/plants?toxic=1');
         self::assertSame(['Lily'], $crawler->filter('.plant-card h2')->each(fn ($n) => $n->text()));
     }
+
+    public function testPlantListQueryCountDoesNotGrowWithPlants(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $household = $this->createHousehold($user);
+        $species = new Species('Monstera', 'Monstera deliciosa', 7, LightLevel::BrightIndirect);
+        $this->em()->persist($species);
+        for ($i = 1; $i <= 15; ++$i) {
+            $plant = $this->createPlant($household, 'Plant '.$i, $this->createRoom($household, 'Room '.$i))->setSpecies($species);
+            $this->em()->persist(new \App\Entity\CareSchedule($plant, \App\Enum\CareTaskType::Water, 7, new DateTimeImmutable('+'.$i.' days')));
+        }
+        $this->em()->flush();
+        $client->loginUser($user);
+        $client->disableReboot();
+        $this->em()->clear();
+
+        \App\Tests\Support\Doctrine\QueryCounter::reset();
+        $client->request('GET', '/plants');
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorCount(15, '.plant-card');
+        self::assertLessThanOrEqual(8, \count(\App\Tests\Support\Doctrine\QueryCounter::selects()), implode("\n", \App\Tests\Support\Doctrine\QueryCounter::selects()));
+    }
 }

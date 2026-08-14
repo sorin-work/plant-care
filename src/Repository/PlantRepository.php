@@ -23,7 +23,13 @@ class PlantRepository extends ServiceEntityRepository
      */
     public function findActive(Household $household, ?Room $room = null, ?string $search = null): array
     {
+        // Cards show the room, the species and the next task: load them in
+        // the same query instead of once per plant.
         $qb = $this->createQueryBuilder('p')
+            ->addSelect('r', 's', 'sch')
+            ->leftJoin('p.room', 'r')
+            ->leftJoin('p.species', 's')
+            ->leftJoin('p.schedules', 'sch')
             ->where('p.household = :household')
             ->andWhere('p.archivedAt IS NULL')
             ->setParameter('household', $household)
@@ -35,8 +41,7 @@ class PlantRepository extends ServiceEntityRepository
 
         $search = trim((string) $search);
         if ('' !== $search) {
-            $qb->leftJoin('p.species', 'sp')
-                ->andWhere("LOWER(p.name) LIKE :q ESCAPE '!' OR LOWER(sp.commonName) LIKE :q ESCAPE '!' OR LOWER(sp.scientificName) LIKE :q ESCAPE '!'")
+            $qb->andWhere("LOWER(p.name) LIKE :q ESCAPE '!' OR LOWER(s.commonName) LIKE :q ESCAPE '!' OR LOWER(s.scientificName) LIKE :q ESCAPE '!'")
                 ->setParameter('q', '%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], mb_strtolower($search)).'%');
         }
 
