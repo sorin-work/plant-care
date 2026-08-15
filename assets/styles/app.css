@@ -922,3 +922,13 @@ form.inline {
     color: var(--gray-500);
     margin-bottom: .5rem;
 }
+
+.plant-card h2,
+.list li > span,
+.journal-entry p {
+    overflow-wrap: anywhere;
+}
+
+.list li {
+    gap: .75rem;
+}
