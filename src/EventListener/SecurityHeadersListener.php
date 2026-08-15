@@ -24,7 +24,7 @@ final class SecurityHeadersListener
         $headers->set('Referrer-Policy', 'same-origin');
         $headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
 
-        if (!$headers->has('Content-Security-Policy') && str_contains((string) $headers->get('Content-Type'), 'text/html')) {
+        if (!$headers->has('Content-Security-Policy') && str_contains((string) $headers->get('Content-Type', 'text/html'), 'text/html')) {
             // importmap() prints an inline module script, hence 'unsafe-inline' for scripts
             $headers->set('Content-Security-Policy', "default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; frame-ancestors 'none'; form-action 'self'");
         }
