@@ -11,6 +11,31 @@ use DateTimeInterface;
  */
 final class RelativeDay
 {
+    /**
+     * How long since a date, in the largest sensible unit: "3 weeks",
+     * "5 months", "1 year and 2 months".
+     */
+    public static function duration(DateTimeInterface $since, DateTimeInterface $today): string
+    {
+        $diff = DateTimeImmutable::createFromInterface($since)->setTime(0, 0)->diff(DateTimeImmutable::createFromInterface($today)->setTime(0, 0));
+        $plural = static fn (int $n, string $unit): string => \sprintf('%d %s%s', $n, $unit, 1 === $n ? '' : 's');
+
+        if ($diff->invert || 0 === (int) $diff->days) {
+            return 'less than a day';
+        }
+        if ($diff->y > 0) {
+            return $plural($diff->y, 'year').($diff->m > 0 ? ' and '.$plural($diff->m, 'month') : '');
+        }
+        if ($diff->m > 0) {
+            return $plural($diff->m, 'month');
+        }
+        if ($diff->d >= 7) {
+            return $plural(intdiv($diff->d, 7), 'week');
+        }
+
+        return $plural($diff->d, 'day');
+    }
+
     public static function format(DateTimeInterface $date, DateTimeInterface $today): string
     {
         $from = DateTimeImmutable::createFromInterface($today)->setTime(0, 0);

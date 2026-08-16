@@ -138,7 +138,7 @@
             <dl class="facts">
                 <dt>Room</dt><dd>{{ plant.room ? plant.room.name : '—' }}</dd>
                 <dt>Light</dt><dd>{{ plant.light.label }}</dd>
-                <dt>Since</dt><dd>{{ plant.acquiredOn ? plant.acquiredOn|date('j M Y') : '—' }}</dd>
+                <dt>Since</dt><dd>{% if plant.acquiredOn %}{{ plant.acquiredOn|date('j M Y') }} <span class="muted plant-age">({{ plant.acquiredOn|time_since(plant.household) }})</span>{% else %}—{% endif %}</dd>
                 {% if plant.species and plant.species.toxicToPets %}
                     <dt>Pets</dt><dd class="danger">Toxic to cats and dogs</dd>
                 {% endif %}

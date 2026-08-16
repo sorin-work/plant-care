@@ -28,4 +28,24 @@ final class RelativeDayTest extends TestCase
     {
         self::assertSame($expected, RelativeDay::format(new DateTimeImmutable($date), new DateTimeImmutable('2026-07-12 08:00')));
     }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function durations(): iterable
+    {
+        yield 'same day' => ['2026-08-16', 'less than a day'];
+        yield 'days' => ['2026-08-13', '3 days'];
+        yield 'weeks' => ['2026-07-30', '2 weeks'];
+        yield 'one month' => ['2026-07-16', '1 month'];
+        yield 'year and months' => ['2025-06-01', '1 year and 2 months'];
+        yield 'exact years' => ['2024-08-16', '2 years'];
+        yield 'future date' => ['2026-09-01', 'less than a day'];
+    }
+
+    #[DataProvider('durations')]
+    public function testDuration(string $since, string $expected): void
+    {
+        self::assertSame($expected, RelativeDay::duration(new DateTimeImmutable($since), new DateTimeImmutable('2026-08-16')));
+    }
 }

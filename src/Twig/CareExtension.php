@@ -34,12 +34,18 @@ final class CareExtension extends AbstractExtension
     {
         return [
             new TwigFilter('ago', $this->ago(...)),
+            new TwigFilter('time_since', $this->timeSince(...)),
         ];
     }
 
     /**
      * Relative day as seen by the household the schedule or plant belongs to.
      */
+    public function timeSince(DateTimeInterface $date, Household $household): string
+    {
+        return RelativeDay::duration($date, $this->clock->today($household));
+    }
+
     public function ago(DateTimeInterface $date, Household $household): string
     {
         return RelativeDay::format($date, $this->clock->today($household));
