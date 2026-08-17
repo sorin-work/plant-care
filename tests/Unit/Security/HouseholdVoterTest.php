@@ -10,6 +10,7 @@ use App\Enum\HouseholdRole;
 use App\Repository\MembershipRepository;
 use App\Security\HouseholdVoter;
 use App\Security\Permission;
+use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use stdClass;
@@ -61,5 +62,34 @@ final class HouseholdVoterTest extends TestCase
 
         self::assertSame(VoterInterface::ACCESS_ABSTAIN, $voter->vote($token, new stdClass(), [Permission::VIEW]));
         self::assertSame(VoterInterface::ACCESS_ABSTAIN, $voter->vote($token, new Household('x'), ['ROLE_ADMIN']));
+    }
+
+    public function testResolvesHouseholdOfNestedSubjects(): void
+    {
+        $household = new Household('Home');
+        $plant = new Plant($household);
+        $schedule = new \App\Entity\CareSchedule($plant, \App\Enum\CareTaskType::Water, 7, new DateTimeImmutable());
+        $entry = new \App\Entity\JournalEntry($plant, null, new DateTimeImmutable());
+        $room = new \App\Entity\Room($household, 'Hall');
+
+        foreach ([$household, $plant, $schedule, $entry, $room] as $subject) {
+            self::assertSame($household, HouseholdVoter::householdOf($subject));
+        }
+        self::assertNull(HouseholdVoter::householdOf(new \App\Entity\Species('x', 'y', 1, \App\Enum\LightLevel::Low)));
+    }
+
+    public function testStrangerIsDeniedForEverySubjectType(): void
+    {
+        $household = new Household('Home');
+        $plant = new Plant($household);
+        $user = (new User())->setEmail('u@example.com');
+        $repo = $this->createStub(MembershipRepository::class);
+        $repo->method('findOneFor')->willReturn(null);
+        $voter = new HouseholdVoter($repo);
+        $token = new UsernamePasswordToken($user, 'main', $user->getRoles());
+
+        foreach ([new \App\Entity\Room($household, 'Hall'), new \App\Entity\JournalEntry($plant, null, new DateTimeImmutable())] as $subject) {
+            self::assertSame(VoterInterface::ACCESS_DENIED, $voter->vote($token, $subject, [Permission::VIEW]));
+        }
     }
 }
