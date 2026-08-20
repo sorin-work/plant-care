@@ -31,6 +31,8 @@ services:
       MAILER_FROM: ${MAILER_FROM:-plants@localhost}
     volumes:
       - photos:/var/www/app/var/uploads/photos
+      # keeps people signed in when the container is recreated
+      - sessions:/var/www/app/var/sessions
     depends_on:
       db:
         condition: service_healthy
@@ -66,3 +68,4 @@ services:
 volumes:
   db-data:
   photos:
+  sessions:

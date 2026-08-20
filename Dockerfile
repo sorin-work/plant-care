@@ -26,7 +26,7 @@ RUN composer dump-autoload --no-dev --classmap-authoritative \
     && php bin/console importmap:install \
     && php bin/console asset-map:compile \
     && php bin/console cache:warmup \
-    && mkdir -p var/uploads/photos \
+    && mkdir -p var/uploads/photos var/sessions \
     && chown -R www-data:www-data var
 
 COPY docker/entrypoint.sh /usr/local/bin/app-entrypoint
