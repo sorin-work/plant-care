@@ -932,3 +932,9 @@ form.inline {
 .list li {
     gap: .75rem;
 }
+
+.site-footer {
+    padding-bottom: 2rem;
+    font-size: .8rem;
+    text-align: center;
+}

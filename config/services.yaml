@@ -1,4 +1,5 @@
 parameters:
+    app.version: '0.9.0'
 
 services:
     _defaults:
