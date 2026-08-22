@@ -48,7 +48,20 @@ Open http://localhost:4414 and sign in with the demo account:
 - **Email:** `demo@example.com`
 - **Password:** `demo-password`
 
-Set `SEED_DEMO=false` to start with an empty database.
+The demo account has a household with five rooms, a dozen plants and a few months
+of care history, a flatmate with the caretaker role (`sam@example.com`, same
+password) and access to Sam's office household as an editor. Set `SEED_DEMO=false`
+to start with an empty database.
+
+| Service   | URL / port             | Notes                                                 |
+| --------- | ---------------------- | ----------------------------------------------------- |
+| app       | http://localhost:4414  | PHP 8.3 + Apache; runs migrations on start            |
+| db        | internal               | MySQL 8.4, user/password `plantcare`                  |
+| scheduler | -                      | Runs `app:digest:send` every hour                     |
+| mailpit   | http://localhost:4415  | Catches every email the app sends                     |
+
+Ports can be changed with `WEB_PORT` and `MAILPIT_PORT`. Data lives in the
+`db-data`, `photos` and `sessions` volumes; `docker compose down -v` removes them.
 
 ## Local development
 
