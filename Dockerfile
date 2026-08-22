@@ -3,7 +3,7 @@
 FROM php:8.3-apache-bookworm
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends libicu-dev libzip-dev unzip git \
+    && apt-get install -y --no-install-recommends libicu-dev libzip-dev unzip \
     && docker-php-ext-install intl pdo_mysql zip opcache \
     && a2enmod rewrite headers \
     && rm -rf /var/lib/apt/lists/*
@@ -19,7 +19,8 @@ ENV APP_ENV=prod \
 WORKDIR /var/www/app
 
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --no-scripts --no-autoloader --no-interaction --prefer-dist
+RUN composer install --no-dev --no-scripts --no-autoloader --no-interaction --prefer-dist \
+    && composer clear-cache
 
 COPY . .
 RUN composer dump-autoload --no-dev --classmap-authoritative \
@@ -27,6 +28,7 @@ RUN composer dump-autoload --no-dev --classmap-authoritative \
     && php bin/console asset-map:compile \
     && php bin/console cache:warmup \
     && mkdir -p var/uploads/photos var/sessions \
+    && rm -rf assets/vendor/.cache \
     && chown -R www-data:www-data var
 
 COPY docker/entrypoint.sh /usr/local/bin/app-entrypoint
