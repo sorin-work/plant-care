@@ -938,3 +938,13 @@ form.inline {
     font-size: .8rem;
     text-align: center;
 }
+
+.move-plants {
+    display: grid;
+    gap: .35rem;
+}
+
+.move-plants .btn {
+    justify-self: start;
+    margin-top: .5rem;
+}

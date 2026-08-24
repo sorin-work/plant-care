@@ -126,4 +126,27 @@ final class RoomControllerTest extends WebTestCase
         $crawler = $client->request('GET', '/plants/new');
         self::assertSame('direct', $crawler->filter('#plant_room option:contains("Sunroom")')->attr('data-light'));
     }
+
+    public function testMovePlantsIntoRoom(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $household = $this->createHousehold($user);
+        $kitchen = $this->createRoom($household, 'Kitchen');
+        $hall = $this->createRoom($household, 'Hall');
+        $basil = $this->createPlant($household, 'Basil', $hall);
+        $this->createPlant($household, 'Stay');
+        $foreign = $this->createPlant($this->createHousehold($this->createUser('x@example.com')), 'Foreign');
+        $client->loginUser($user);
+
+        $crawler = $client->request('GET', '/rooms/'.$kitchen->getId().'/edit');
+        $token = $crawler->filter('.move-plants input[name=_token]')->attr('value');
+        $client->request('POST', '/rooms/'.$kitchen->getId().'/plants', ['_token' => $token, 'plants' => [$basil->getId(), $foreign->getId()]]);
+        $client->followRedirect();
+
+        self::assertSelectorTextContains('.flash', 'Moved 1 plant to Kitchen.');
+        $this->em()->clear();
+        self::assertSame($kitchen->getId(), $this->em()->find(\App\Entity\Plant::class, $basil->getId())?->getRoom()?->getId());
+        self::assertNull($this->em()->find(\App\Entity\Plant::class, $foreign->getId())?->getRoom());
+    }
 }

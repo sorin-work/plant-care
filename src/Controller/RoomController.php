@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Room;
 use App\Form\RoomType;
 use App\Household\CurrentHousehold;
+use App\Repository\PlantRepository;
 use App\Repository\RoomRepository;
 use App\Security\Permission;
 use Doctrine\ORM\EntityManagerInterface;
@@ -48,7 +49,7 @@ final class RoomController extends AppController
     }
 
     #[Route('/{id}/edit', name: 'room_edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
-    public function edit(Room $room, Request $request): Response
+    public function edit(Room $room, Request $request, PlantRepository $plants): Response
     {
         $this->guard(Permission::EDIT, $room);
         $form = $this->createForm(RoomType::class, $room);
@@ -63,8 +64,27 @@ final class RoomController extends AppController
 
         return $this->render('room/edit.html.twig', [
             'room' => $room,
+            'others' => array_values(array_filter($plants->findActive($room->getHousehold()), static fn ($p) => $p->getRoom()?->getId() !== $room->getId())),
             'form' => $form,
         ], new Response(status: $form->isSubmitted() ? 422 : 200));
+    }
+
+    #[Route('/{id}/plants', name: 'room_move_plants', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function movePlants(Room $room, Request $request, PlantRepository $plants): Response
+    {
+        $this->guard(Permission::EDIT, $room);
+        $this->assertCsrf('move-plants-'.$room->getId(), $request);
+
+        $ids = array_map('intval', $request->request->all('plants'));
+        $moved = 0;
+        foreach ([] === $ids ? [] : $plants->findBy(['id' => $ids, 'household' => $room->getHousehold()]) as $plant) {
+            $plant->setRoom($room);
+            ++$moved;
+        }
+        $this->em->flush();
+        $this->addFlash('success', \sprintf('Moved %d %s to %s.', $moved, 1 === $moved ? 'plant' : 'plants', $room->getName()));
+
+        return $this->redirectToRoute('room_edit', ['id' => $room->getId()]);
     }
 
     #[Route('/{id}/delete', name: 'room_delete', methods: ['POST'], requirements: ['id' => '\d+'])]

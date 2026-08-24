@@ -11,5 +11,19 @@
             <button type="submit" class="btn">Save</button>
             <a href="{{ path('room_index') }}" class="btn btn-secondary">Cancel</a>
         {{ form_end(form) }}
+
+        {% if others is not empty %}
+            <h2>Move plants here</h2>
+            <form method="post" action="{{ path('room_move_plants', {id: room.id}) }}" class="move-plants">
+                <input type="hidden" name="_token" value="{{ csrf_token('move-plants-' ~ room.id) }}">
+                {% for plant in others %}
+                    <label class="checkbox-inline">
+                        <input type="checkbox" name="plants[]" value="{{ plant.id }}">
+                        {{ plant.name }} <span class="muted">{{ plant.room ? plant.room.name : 'no room' }}</span>
+                    </label>
+                {% endfor %}
+                <button type="submit" class="btn btn-secondary">Move to {{ room.name }}</button>
+            </form>
+        {% endif %}
     </section>
 {% endblock %}
