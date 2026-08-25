@@ -7,9 +7,11 @@ use App\Enum\HouseholdRole;
 use App\Tests\Support\Factory;
 use DateTimeImmutable;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\Clock\Test\ClockSensitiveTrait;
 
 final class JournalControllerTest extends WebTestCase
 {
+    use ClockSensitiveTrait;
     use Factory;
 
     public function testAddJournalEntryFromPlantPage(): void
@@ -270,5 +272,24 @@ final class JournalControllerTest extends WebTestCase
 
         self::assertSame(['Fern', 'Monty'], $crawler->filter('.feed-plant')->each(fn ($p) => $p->text()));
         self::assertSelectorTextNotContains('main', 'Hidden');
+    }
+
+    public function testTodayInTheHouseholdTimezoneIsNotTheFuture(): void
+    {
+        // 08:00 on 26 August in Auckland, still 25 August in UTC
+        static::mockTime('2026-08-25 20:00:00 UTC');
+        $client = static::createClient();
+        $user = $this->createUser();
+        $household = $this->createHousehold($user)->setTimezone('Pacific/Auckland');
+        $plant = $this->createPlant($household);
+        $client->loginUser($user);
+
+        $client->request('GET', '/plants/'.$plant->getId());
+        $client->submitForm('Add to journal', ['journal_entry[note]' => 'Morning check', 'journal_entry[writtenOn]' => '2026-08-26']);
+        self::assertResponseRedirects();
+
+        $client->request('GET', '/plants/'.$plant->getId());
+        $client->submitForm('Add to journal', ['journal_entry[note]' => 'Too early', 'journal_entry[writtenOn]' => '2026-08-27']);
+        self::assertResponseStatusCodeSame(422);
     }
 }

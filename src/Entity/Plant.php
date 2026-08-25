@@ -6,12 +6,15 @@ use App\Enum\ArchiveReason;
 use App\Enum\LightLevel;
 use App\Repository\PlantRepository;
 use DateTimeImmutable;
+use DateTimeZone;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use InvalidArgumentException;
+use Symfony\Component\Clock\Clock;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ORM\Entity(repositoryClass: PlantRepository::class)]
 #[ORM\Index(name: 'idx_plant_household_archived', columns: ['household_id', 'archived_at'])]
@@ -44,7 +47,6 @@ class Plant
     private LightLevel $light = LightLevel::Medium;
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
-    #[Assert\LessThanOrEqual('today', message: 'The acquisition date cannot be in the future.')]
     private ?DateTimeImmutable $acquiredOn = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -240,5 +242,23 @@ class Plant
         }
 
         return $next;
+    }
+
+    /**
+     * "In the future" is judged by the household's calendar, not the server's:
+     * in Auckland it can already be tomorrow in UTC terms.
+     */
+    #[Assert\Callback]
+    public function validateNotInFuture(ExecutionContextInterface $context): void
+    {
+        $date = $this->getAcquiredOn();
+        if (null === $date) {
+            return;
+        }
+
+        $today = Clock::get()->now()->setTimezone(new DateTimeZone($this->household->getTimezone()))->format('Y-m-d');
+        if ($date->format('Y-m-d') > $today) {
+            $context->buildViolation('The acquisition date cannot be in the future.')->atPath('acquiredOn')->addViolation();
+        }
     }
 }

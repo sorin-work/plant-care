@@ -4,9 +4,12 @@ namespace App\Entity;
 
 use App\Repository\JournalEntryRepository;
 use DateTimeImmutable;
+use DateTimeZone;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Clock\Clock;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 /**
  * A note (and optionally a photo) about how a plant is doing.
@@ -30,7 +33,6 @@ class JournalEntry
     private ?User $author;
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE)]
-    #[Assert\LessThanOrEqual('today', message: 'Journal entries cannot be dated in the future.')]
     private DateTimeImmutable $writtenOn;
 
     #[ORM\Column(type: Types::TEXT)]
@@ -106,5 +108,19 @@ class JournalEntry
     public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
+    }
+
+    /**
+     * "In the future" is judged by the household's calendar, not the server's:
+     * in Auckland it can already be tomorrow in UTC terms.
+     */
+    #[Assert\Callback]
+    public function validateNotInFuture(ExecutionContextInterface $context): void
+    {
+        $date = $this->getWrittenOn();
+        $today = Clock::get()->now()->setTimezone(new DateTimeZone($this->plant->getHousehold()->getTimezone()))->format('Y-m-d');
+        if ($date->format('Y-m-d') > $today) {
+            $context->buildViolation('Journal entries cannot be dated in the future.')->atPath('writtenOn')->addViolation();
+        }
     }
 }
