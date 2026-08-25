@@ -141,13 +141,14 @@ final class PlantControllerTest extends WebTestCase
         $client->loginUser($user);
 
         $client->request('GET', '/plants/'.$plant->getId());
-        $client->submitForm('Archive');
+        $client->submitForm('Gave it away');
         self::assertResponseRedirects('/plants');
         $client->followRedirect();
         self::assertSelectorTextContains('.empty', 'No plants yet');
 
         $client->request('GET', '/plants/archived');
         self::assertSelectorTextContains('.list', 'Fern');
+        self::assertSelectorTextContains('.list', 'Gave it away');
 
         $client->request('GET', '/plants/'.$plant->getId());
         $client->submitForm('Restore');

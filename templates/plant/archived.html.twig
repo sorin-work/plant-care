@@ -12,7 +12,7 @@
             {% for plant in plants %}
                 <li>
                     <a href="{{ path('plant_show', {id: plant.id}) }}">{{ plant.name }}</a>
-                    <span class="muted">archived {{ plant.archivedAt|date('j M Y') }}</span>
+                    <span class="muted">{{ plant.archiveReason ? plant.archiveReason.label ~ ', ' }}archived {{ plant.archivedAt|date('j M Y') }}</span>
                 </li>
             {% endfor %}
         </ul>

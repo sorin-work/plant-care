@@ -8,6 +8,7 @@ use App\Care\ScheduleFactory;
 use App\Entity\JournalEntry;
 use App\Entity\Plant;
 use App\Entity\User;
+use App\Enum\ArchiveReason;
 use App\Form\JournalEntryType;
 use App\Form\PlantType;
 use App\Household\CurrentHousehold;
@@ -154,7 +155,7 @@ final class PlantController extends AppController
         $this->guard(Permission::EDIT, $plant);
         $this->assertCsrf('archive-plant-'.$plant->getId(), $request);
 
-        $plant->archive();
+        $plant->archive(reason: ArchiveReason::tryFrom($request->request->getString('reason')));
         $this->em->flush();
         $this->addFlash('success', \sprintf('%s was archived. You can restore it from the archive.', $plant->getName()));
 

@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Enum\ArchiveReason;
 use App\Enum\LightLevel;
 use App\Repository\PlantRepository;
 use DateTimeImmutable;
@@ -55,6 +56,9 @@ class Plant
 
     #[ORM\Column(nullable: true)]
     private ?DateTimeImmutable $archivedAt = null;
+
+    #[ORM\Column(length: 16, nullable: true, enumType: ArchiveReason::class)]
+    private ?ArchiveReason $archiveReason = null;
 
     #[ORM\Column]
     private DateTimeImmutable $createdAt;
@@ -165,14 +169,21 @@ class Plant
         return null !== $this->archivedAt;
     }
 
-    public function archive(DateTimeImmutable $at = new DateTimeImmutable()): void
+    public function archive(DateTimeImmutable $at = new DateTimeImmutable(), ?ArchiveReason $reason = null): void
     {
         $this->archivedAt ??= $at;
+        $this->archiveReason = $reason;
     }
 
     public function restore(): void
     {
         $this->archivedAt = null;
+        $this->archiveReason = null;
+    }
+
+    public function getArchiveReason(): ?ArchiveReason
+    {
+        return $this->archiveReason;
     }
 
     public function getCreatedAt(): DateTimeImmutable
