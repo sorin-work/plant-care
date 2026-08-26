@@ -24,6 +24,13 @@ households and your role in each.
 Permissions are the same as in the web app: viewers can read, caretakers and
 editors can also complete, snooze and skip tasks.
 
+## Rate limit
+
+Each token can make 120 requests per minute (requests without a token are counted
+per IP address). Every response has an `X-RateLimit-Remaining` header; above the
+limit the API answers `429 Too Many Requests` with a `Retry-After` header in
+seconds.
+
 ## Errors
 
 Errors are JSON with an `error` message and the matching status code:
@@ -34,6 +41,7 @@ Errors are JSON with an `error` message and the matching status code:
 | 403    | You are a member but your role does not allow it      |
 | 404    | Not found, or it belongs to a household you are not in |
 | 422    | Invalid input, e.g. snoozing for more than 14 days     |
+| 429    | Too many requests, see the rate limit above            |
 
 ```json
 { "error": "A task can be snoozed for 1 to 14 days." }
