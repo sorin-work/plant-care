@@ -37,4 +37,22 @@ final class MeTest extends WebTestCase
         self::assertSame('ana@example.com', $data['email']);
         self::assertSame([['id' => $household->getId(), 'name' => 'Flat', 'role' => 'owner', 'timezone' => 'UTC', 'hemisphere' => 'north']], $data['households']);
     }
+
+    public function testRequestsAreRateLimitedPerToken(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $this->createHousehold($user);
+        $headers = $this->apiHeaders($user);
+
+        for ($i = 0; $i < 10; ++$i) {
+            $client->request('GET', '/api/me', server: $headers);
+            self::assertResponseIsSuccessful();
+        }
+        self::assertResponseHeaderSame('x-ratelimit-remaining', '0');
+
+        $client->request('GET', '/api/me', server: $headers);
+        self::assertResponseStatusCodeSame(429);
+        self::assertTrue($client->getResponse()->headers->has('retry-after'));
+    }
 }
