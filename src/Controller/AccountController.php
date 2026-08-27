@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Account\DataExport;
 use App\Entity\User;
 use App\Form\ChangePasswordType;
 use App\Form\ProfileType;
@@ -55,6 +56,15 @@ final class AccountController extends AppController
             'profile' => $profile,
             'password' => $password,
         ], new Response(status: $profile->isSubmitted() || $password->isSubmitted() ? 422 : 200));
+    }
+
+    #[Route('/export', name: 'account_export', methods: ['GET'])]
+    public function export(#[CurrentUser] User $user, DataExport $export): Response
+    {
+        $response = $this->json($export->forUser($user), 200, [], ['json_encode_options' => \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES]);
+        $response->headers->set('Content-Disposition', 'attachment; filename="plant-care-export.json"');
+
+        return $response;
     }
 
     #[Route('/api-token', name: 'account_token', methods: ['POST'])]

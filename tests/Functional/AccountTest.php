@@ -4,6 +4,7 @@ namespace App\Tests\Functional;
 
 use App\Entity\User;
 use App\Tests\Support\Factory;
+use DateTimeImmutable;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 final class AccountTest extends WebTestCase
@@ -174,5 +175,28 @@ final class AccountTest extends WebTestCase
 
         self::assertSelectorTextContains('.flash-error', 'at least one owner');
         self::assertNotNull(static::getContainer()->get(\App\Repository\UserRepository::class)->findOneByEmail('owner@example.com'));
+    }
+
+    public function testDownloadData(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser(name: 'Ana');
+        $household = $this->createHousehold($user, 'Flat');
+        $plant = $this->createPlant($household, 'Ölbaum');
+        $this->em()->persist(new \App\Entity\CareSchedule($plant, \App\Enum\CareTaskType::Water, 7, new DateTimeImmutable('2026-08-30')));
+        $this->em()->persist((new \App\Entity\JournalEntry($plant, $user, new DateTimeImmutable('2026-08-01')))->setNote('Hello'));
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $client->request('GET', '/account/export');
+
+        self::assertResponseIsSuccessful();
+        self::assertResponseHeaderSame('content-disposition', 'attachment; filename="plant-care-export.json"');
+        $data = json_decode((string) $client->getResponse()->getContent(), true);
+        self::assertSame('Ana', $data['account']['displayName']);
+        self::assertSame('Flat', $data['households'][0]['name']);
+        self::assertSame('Ölbaum', $data['households'][0]['plants'][0]['name']);
+        self::assertSame('2026-08-30', $data['households'][0]['plants'][0]['schedules'][0]['nextDueOn']);
+        self::assertSame('Hello', $data['households'][0]['plants'][0]['journal'][0]['note']);
     }
 }
