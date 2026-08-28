@@ -15,6 +15,7 @@ export default class extends Controller {
         const body = new FormData(form, submitter);
         const action = submitter?.getAttribute('formaction') || form.action;
 
+        this.element.querySelector('details[open]')?.removeAttribute('open');
         this.element.classList.add('is-busy');
         this.element.querySelectorAll('button').forEach((b) => (b.disabled = true));
 
