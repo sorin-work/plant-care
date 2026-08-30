@@ -23,7 +23,7 @@ final class ImportSpeciesCommandTest extends KernelTestCase
         $tester->execute([]);
 
         $tester->assertCommandIsSuccessful();
-        self::assertStringContainsString('32 created, 0 updated', $tester->getDisplay());
+        self::assertStringContainsString('42 created, 0 updated', $tester->getDisplay());
 
         $monstera = static::getContainer()->get(SpeciesRepository::class)->findOneByScientificName('Monstera deliciosa');
         self::assertNotNull($monstera);
@@ -38,7 +38,7 @@ final class ImportSpeciesCommandTest extends KernelTestCase
         $tester = $this->tester();
         $tester->execute([]);
 
-        self::assertStringContainsString('0 created, 32 updated', $tester->getDisplay());
+        self::assertStringContainsString('0 created, 42 updated', $tester->getDisplay());
     }
 
     public function testInvalidLightLevelFails(): void

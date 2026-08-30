@@ -11,7 +11,7 @@ plants in your home, with a daily list of what needs doing.
   or water a whole room at once
 - **Coming up**: what is due over the next week, plus an iCal feed for your calendar
 - **Journal** with notes and photos for every plant, a photo timeline and CSV export
-- **Species catalog** with care defaults and pet toxicity for 30+ common houseplants
+- **Species catalog** with care defaults and pet toxicity for 40+ common houseplants
 - **Sharing**: invite the people you live with to a household, each with a role
 - **Stats** on the care of the last weeks
 - **JSON API** with personal tokens

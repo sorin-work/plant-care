@@ -30,5 +30,15 @@
     {"common": "Swiss cheese vine", "scientific": "Monstera adansonii", "water": 6, "fertilize": 30, "repot": 18, "light": "bright_indirect", "toxic": true, "notes": "Likes more humidity than its big cousin."},
     {"common": "Air plant", "scientific": "Tillandsia ionantha", "water": 7, "fertilize": 30, "repot": 60, "light": "bright_indirect", "toxic": false, "notes": "Soak for 20 minutes, then let it dry upside down. No soil needed."},
     {"common": "Venus flytrap", "scientific": "Dionaea muscipula", "water": 3, "fertilize": null, "repot": 12, "light": "direct", "toxic": false, "notes": "Distilled or rain water only. Never fertilize."},
-    {"common": "Basil", "scientific": "Ocimum basilicum", "water": 2, "fertilize": 21, "repot": 6, "light": "direct", "toxic": false, "notes": "Pinch out the tips to keep it bushy."}
+    {"common": "Basil", "scientific": "Ocimum basilicum", "water": 2, "fertilize": 21, "repot": 6, "light": "direct", "toxic": false, "notes": "Pinch out the tips to keep it bushy."},
+    {"common": "Philodendron Birkin", "scientific": "Philodendron 'Birkin'", "water": 7, "fertilize": 30, "repot": 18, "light": "bright_indirect", "toxic": true, "notes": "The white stripes need good light to stay bright."},
+    {"common": "Alocasia", "scientific": "Alocasia amazonica", "water": 5, "fertilize": 21, "repot": 18, "light": "bright_indirect", "toxic": true, "notes": "Can drop leaves and go dormant in winter; keep it warm."},
+    {"common": "Peperomia", "scientific": "Peperomia obtusifolia", "water": 10, "fertilize": 45, "repot": 24, "light": "medium", "toxic": false, "notes": "Thick leaves store water, let the soil dry out."},
+    {"common": "Lucky bamboo", "scientific": "Dracaena sanderiana", "water": 7, "fertilize": 60, "repot": 24, "light": "low", "toxic": true, "notes": "In water: top up weekly and change it monthly."},
+    {"common": "Christmas cactus", "scientific": "Schlumbergera truncata", "water": 10, "fertilize": 30, "repot": 36, "light": "bright_indirect", "toxic": false, "notes": "Needs cool nights in autumn to set buds."},
+    {"common": "Kentia palm", "scientific": "Howea forsteriana", "water": 9, "fertilize": 45, "repot": 36, "light": "medium", "toxic": false, "notes": "Slow growing and tolerant of indoor conditions."},
+    {"common": "Rosemary", "scientific": "Salvia rosmarinus", "water": 5, "fertilize": 45, "repot": 12, "light": "direct", "toxic": false, "notes": "Hates wet feet; give it the sunniest windowsill."},
+    {"common": "African violet", "scientific": "Streptocarpus ionanthus", "water": 5, "fertilize": 14, "repot": 12, "light": "bright_indirect", "toxic": false, "notes": "Water from below and keep water off the leaves."},
+    {"common": "Arrowhead plant", "scientific": "Syngonium podophyllum", "water": 6, "fertilize": 30, "repot": 18, "light": "medium", "toxic": true, "notes": "Leaves change shape as the plant matures."},
+    {"common": "Ponytail palm", "scientific": "Beaucarnea recurvata", "water": 21, "fertilize": 90, "repot": 36, "light": "direct", "toxic": false, "notes": "The swollen trunk stores water; water sparingly."}
 ]
