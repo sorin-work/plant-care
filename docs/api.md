@@ -135,7 +135,9 @@ One plant with its schedules (same shape as the tasks above, without `plant` and
 
 ### `POST /api/tasks/{id}/done`
 
-Marks the task done today and returns the updated schedule.
+Marks the task done today and returns the updated schedule. The call is
+idempotent per day: sending it again (e.g. a retry after a timeout) returns the
+same schedule and does not log the care a second time.
 
 ### `POST /api/tasks/{id}/skip`
 
