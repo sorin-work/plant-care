@@ -292,4 +292,24 @@ final class CareTaskControllerTest extends WebTestCase
         self::assertSelectorTextContains('.tasks', 'Lily');
         self::assertSelectorNotExists('.snoozed');
     }
+
+    public function testDoneTwiceOnTheSameDayIsLoggedOnce(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $plant = $this->createPlant($this->createHousehold($user), 'Monty');
+        $schedule = (new CareSchedule($plant, CareTaskType::Water, 7, new DateTimeImmutable('today')))->setSeasonal(false);
+        $this->em()->persist($schedule);
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $crawler = $client->request('GET', '/plants/'.$plant->getId());
+        $form = $crawler->selectButton('Done')->form();
+        $client->submit($form);
+        $client->submit($form);
+
+        self::assertCount(1, static::getContainer()->get(CareEventRepository::class)->findRecentForPlant($plant));
+        $reloaded = $this->em()->find(CareSchedule::class, $schedule->getId());
+        self::assertSame((new DateTimeImmutable('today +7 days'))->format('Y-m-d'), $reloaded?->getNextDueOn()->format('Y-m-d'));
+    }
 }

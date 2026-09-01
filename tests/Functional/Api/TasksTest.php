@@ -135,4 +135,21 @@ final class TasksTest extends WebTestCase
         self::assertResponseStatusCodeSame(403);
         self::assertCount(0, static::getContainer()->get(CareEventRepository::class)->findRecentForPlant($schedule->getPlant()));
     }
+
+    public function testRetriedDoneIsIdempotent(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $plant = $this->createPlant($this->createHousehold($user), 'Monty');
+        $schedule = $this->schedule($plant);
+        $headers = $this->apiHeaders($user);
+
+        $client->request('POST', '/api/tasks/'.$schedule->getId().'/done', server: $headers);
+        $first = json_decode((string) $client->getResponse()->getContent(), true);
+        $client->request('POST', '/api/tasks/'.$schedule->getId().'/done', server: $headers);
+        $second = json_decode((string) $client->getResponse()->getContent(), true);
+
+        self::assertSame($first['nextDueOn'], $second['nextDueOn']);
+        self::assertCount(1, static::getContainer()->get(CareEventRepository::class)->findRecentForPlant($plant));
+    }
 }
