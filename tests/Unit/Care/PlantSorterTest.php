@@ -54,4 +54,15 @@ final class PlantSorterTest extends TestCase
     {
         self::assertSame(['aloe', 'Fern 2', 'fern 10'], $this->names((new PlantSorter())->sort($this->plants(), 'bogus')));
     }
+
+    public function testSortByNextDueRespectsSnoozes(): void
+    {
+        $household = new Household('Home');
+        $snoozed = (new Plant($household))->setName('Snoozed');
+        (new CareSchedule($snoozed, CareTaskType::Water, 7, new DateTimeImmutable('2026-09-01')))->setSnoozedUntil(new DateTimeImmutable('2026-09-10'));
+        $soon = (new Plant($household))->setName('Soon');
+        new CareSchedule($soon, CareTaskType::Water, 7, new DateTimeImmutable('2026-09-05'));
+
+        self::assertSame(['Soon', 'Snoozed'], $this->names((new PlantSorter())->sort([$snoozed, $soon], PlantSorter::NEXT_DUE)));
+    }
 }

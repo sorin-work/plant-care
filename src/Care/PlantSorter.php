@@ -3,6 +3,7 @@
 namespace App\Care;
 
 use App\Entity\Plant;
+use DateTimeImmutable;
 
 final class PlantSorter
 {
@@ -25,8 +26,8 @@ final class PlantSorter
     {
         $compare = match ($by) {
             self::NEXT_DUE => static function (Plant $a, Plant $b): int {
-                $da = $a->nextSchedule()?->getNextDueOn();
-                $db = $b->nextSchedule()?->getNextDueOn();
+                $da = self::effectiveDue($a);
+                $db = self::effectiveDue($b);
                 if (null === $da || null === $db) {
                     return (null === $da) <=> (null === $db);
                 }
@@ -40,5 +41,21 @@ final class PlantSorter
         usort($plants, $compare);
 
         return $plants;
+    }
+
+    /**
+     * The first day the plant needs something, taking snoozes into account.
+     */
+    private static function effectiveDue(Plant $plant): ?DateTimeImmutable
+    {
+        $first = null;
+        foreach ($plant->getSchedules() as $schedule) {
+            $due = max($schedule->getNextDueOn(), $schedule->getSnoozedUntil() ?? $schedule->getNextDueOn());
+            if (null === $first || $due < $first) {
+                $first = $due;
+            }
+        }
+
+        return $first;
     }
 }
