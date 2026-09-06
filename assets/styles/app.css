@@ -948,3 +948,28 @@ form.inline {
     justify-self: start;
     margin-top: .5rem;
 }
+
+.skip-link {
+    position: absolute;
+    left: -9999px;
+    top: .5rem;
+    z-index: 100;
+    padding: .5rem 1rem;
+    background: var(--surface);
+    border-radius: var(--radius);
+}
+
+.skip-link:focus {
+    left: .5rem;
+}
+
+:focus-visible {
+    outline: 3px solid var(--green-600);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+    }
+}
