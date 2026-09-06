@@ -70,12 +70,26 @@ Composer and a MySQL 8 (or MariaDB 10.11+) database.
 
 ```bash
 composer install
+php bin/console importmap:install
 # point DATABASE_URL at your database in .env.local
 php bin/console doctrine:migrations:migrate
 php bin/console app:species:import
 php bin/console app:demo:seed
 symfony serve   # or: php -S localhost:8000 -t public
 ```
+
+Or with the Makefile: `make install demo`. To use only the database from Docker,
+start it with `docker compose up -d db` and add a port mapping for it in a
+`docker-compose.override.yml`.
+
+Useful console commands:
+
+| Command                       | What it does                                        |
+| ----------------------------- | --------------------------------------------------- |
+| `app:species:import [file]`   | Create or update the species catalog from JSON      |
+| `app:demo:seed`               | Create the demo accounts (does nothing if they exist) |
+| `app:tasks:due [--household]` | Print what is due today, per household              |
+| `app:digest:send [--force]`   | Send the daily email to everyone who is due one     |
 
 ## Configuration
 
@@ -97,13 +111,41 @@ every hour (the `scheduler` service does this in Docker). Each user who opted in
 the Account page gets one email a day after 7:00 in their household's timezone, and
 only when something is due.
 
-## Tests
+## Tests and checks
 
 ```bash
-vendor/bin/phpunit
+vendor/bin/phpunit                          # unit and functional tests
+vendor/bin/php-cs-fixer fix --dry-run --diff
+vendor/bin/phpstan analyse                  # level 8, needs a warmed dev cache
+make check                                  # all of the above, like CI
 ```
 
-The tests use SQLite, so no database server is needed.
+The tests use SQLite and wrap every test in a transaction, so no database server
+is needed. CI also runs the migrations against MySQL 8.4 and validates the
+schema, and builds the Docker image.
+
+## Project layout
+
+```
+assets/          Stimulus controllers and the stylesheet (AssetMapper, no build step)
+config/          Symfony configuration
+data/            species catalog (species.json)
+docker/          Apache vhost, php.ini and entrypoint of the image
+docs/            API reference and how scheduling works
+migrations/      Doctrine migrations (MySQL)
+src/
+  Calendar/      iCal writer
+  Care/          scheduling: seasons, intervals, due tasks, grouping, propagation
+  Command/       console commands
+  Controller/    web controllers, Api/ for the JSON API
+  Entity/        Doctrine entities
+  Household/     current household, members, invitations, household clock
+  Notification/  daily email
+  Security/      household voter and API token handler
+  Stats/         care statistics
+templates/       Twig templates
+tests/           Unit/ and Functional/ PHPUnit tests
+```
 
 ## License
 
