@@ -15,6 +15,8 @@ final class HealthController
         private readonly Connection $connection,
         #[Autowire('%app.version%')]
         private readonly string $version,
+        #[Autowire('%env(resolve:PHOTO_DIR)%')]
+        private readonly string $photoDir,
     ) {
     }
 
@@ -23,10 +25,23 @@ final class HealthController
     {
         try {
             $this->connection->executeQuery('SELECT 1')->fetchOne();
+            $database = 'up';
         } catch (Throwable) {
-            return new JsonResponse(['status' => 'error', 'database' => 'down', 'version' => $this->version], Response::HTTP_SERVICE_UNAVAILABLE);
+            $database = 'down';
         }
 
-        return new JsonResponse(['status' => 'ok', 'database' => 'up', 'version' => $this->version]);
+        // the directory is created on the first upload, so a missing one is fine
+        // as long as its parent is writable
+        $dir = is_dir($this->photoDir) ? $this->photoDir : \dirname($this->photoDir);
+        $photos = is_writable($dir) ? 'writable' : 'read-only';
+
+        $ok = 'up' === $database && 'writable' === $photos;
+
+        return new JsonResponse([
+            'status' => $ok ? 'ok' : 'error',
+            'database' => $database,
+            'photos' => $photos,
+            'version' => $this->version,
+        ], $ok ? Response::HTTP_OK : Response::HTTP_SERVICE_UNAVAILABLE);
     }
 }
