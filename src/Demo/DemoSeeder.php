@@ -17,6 +17,7 @@ use App\Household\HouseholdManager;
 use App\Repository\SpeciesRepository;
 use App\Repository\UserRepository;
 use DateTimeImmutable;
+use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
@@ -75,17 +76,24 @@ final class DemoSeeder
         return null !== $this->users->findOneByEmail(self::EMAIL);
     }
 
-    public function seed(DateTimeImmutable $today): User
+    public const TIMEZONE = 'Europe/Berlin';
+
+    /**
+     * @param DateTimeImmutable $now the current moment; history is laid out
+     *                               relative to that day in the demo timezone
+     */
+    public function seed(DateTimeImmutable $now): User
     {
         mt_srand(4414);
-        $today = $today->setTime(0, 0);
+        // "today" as the demo household sees it, like HouseholdClock does
+        $today = new DateTimeImmutable($now->setTimezone(new DateTimeZone(self::TIMEZONE))->format('Y-m-d'));
 
         $user = (new User())->setEmail(self::EMAIL)->setDisplayName('Demo');
         $user->setPassword($this->hasher->hashPassword($user, self::PASSWORD));
         $this->em->persist($user);
 
         $household = $this->households->create($user, 'Demo home');
-        $household->setTimezone('Europe/Berlin');
+        $household->setTimezone(self::TIMEZONE);
 
         $rooms = [];
         foreach (['Living room', 'Bedroom', 'Bathroom', 'Kitchen', 'Office'] as $name) {
@@ -114,7 +122,7 @@ final class DemoSeeder
 
         // Sam's office, shared with the demo user as an editor.
         $office = $this->households->create($sam, 'Office');
-        $office->setTimezone('Europe/Berlin');
+        $office->setTimezone(self::TIMEZONE);
         $this->em->persist(new Membership($office, $user, HouseholdRole::Editor));
         $desk = new Room($office, 'Open space');
         $this->em->persist($desk);
