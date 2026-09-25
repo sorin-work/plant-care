@@ -124,6 +124,21 @@ The tests use SQLite and wrap every test in a transaction, so no database server
 is needed. CI also runs the migrations against MySQL 8.4 and validates the
 schema, and builds the Docker image.
 
+## Troubleshooting
+
+- **"Invalid CSRF token" when submitting a form**: the session expired or cookies
+  are blocked for the site; reload the page and try again.
+- **Today shows yesterday's tasks**: check the timezone in the household settings,
+  the day starts at midnight in that timezone.
+- **No daily email**: make sure the `scheduler` service (or a cron job running
+  `app:digest:send` hourly) is running, `MAILER_DSN` is set, and the option is
+  ticked on the Account page. Mails only go out when something is due.
+- **Photo uploads fail**: only JPEG, PNG and WebP images up to 8 MB are accepted,
+  and `PHOTO_DIR` must be writable (`/health` reports `"photos": "read-only"`
+  otherwise).
+- **Too many failed sign in attempts**: wait 15 minutes, or clear the
+  `cache.rate_limiter` pool with `php bin/console cache:pool:clear cache.rate_limiter`.
+
 ## Project layout
 
 ```
