@@ -44,6 +44,13 @@ jobs:
           php bin/console lint:yaml config
           php bin/console lint:container
 
+      - name: Boot in production mode
+        run: |
+          php bin/console cache:clear --env=prod
+          php bin/console lint:container --env=prod
+        env:
+          APP_SECRET: ci-secret
+
       - name: Tests
         run: |
           php bin/console importmap:install
