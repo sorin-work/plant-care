@@ -55,4 +55,31 @@ final class MeTest extends WebTestCase
         self::assertResponseStatusCodeSame(429);
         self::assertTrue($client->getResponse()->headers->has('retry-after'));
     }
+
+    public function testListsEveryHouseholdWithTheRole(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser('ana@example.com', 'Ana');
+        $this->createHousehold($user, 'Mine');
+        $office = $this->createHousehold($this->createUser('boss@example.com'), 'Office');
+        $this->addMember($office, $user, \App\Enum\HouseholdRole::Caretaker);
+
+        $client->request('GET', '/api/me', server: $this->apiHeaders($user));
+
+        $households = json_decode((string) $client->getResponse()->getContent(), true)['households'];
+        self::assertSame(['Mine' => 'owner', 'Office' => 'caretaker'], array_column($households, 'role', 'name'));
+    }
+
+    public function testRevokedTokenStopsWorking(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $headers = $this->apiHeaders($user);
+        $user->revokeApiToken();
+        $this->em()->flush();
+
+        $client->request('GET', '/api/me', server: $headers);
+
+        self::assertResponseStatusCodeSame(401);
+    }
 }
