@@ -12,6 +12,7 @@ export default class extends Controller {
         if (this.hasCountTarget) {
             this.countTarget.textContent = remaining === 0 ? '' : ` · ${remaining} ${remaining === 1 ? 'task' : 'tasks'}`;
         }
+        document.title = document.title.replace(/^\(\d+\) /, remaining > 0 ? `(${remaining}) ` : '');
         if (remaining === 0 && this.hasEmptyTarget) {
             this.emptyTarget.hidden = false;
         }

@@ -145,4 +145,19 @@ final class HomeControllerTest extends WebTestCase
         self::assertSame('2026-03-11', $reloaded?->getLastDoneOn()?->format('Y-m-d'));
         self::assertSame('2026-03-18', $reloaded->getNextDueOn()->format('Y-m-d'));
     }
+
+    public function testPageTitleShowsTaskCount(): void
+    {
+        $client = static::createClient();
+        $user = $this->createUser();
+        $household = $this->createHousehold($user);
+        $this->em()->persist(new CareSchedule($this->createPlant($household, 'A'), CareTaskType::Water, 7, new DateTimeImmutable('today')));
+        $this->em()->persist(new CareSchedule($this->createPlant($household, 'B'), CareTaskType::Water, 7, new DateTimeImmutable('today')));
+        $this->em()->flush();
+        $client->loginUser($user);
+
+        $client->request('GET', '/');
+
+        self::assertPageTitleSame('(2) Today · Plant care');
+    }
 }

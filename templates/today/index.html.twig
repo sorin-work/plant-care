@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Today · {{ parent() }}{% endblock %}
+{% block title %}{{ count ? '(' ~ count ~ ') ' }}Today · {{ parent() }}{% endblock %}
 
 {% block body %}
     <div data-controller="today" data-action="today:changed->today#update">
