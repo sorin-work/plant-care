@@ -11,12 +11,6 @@ final class SpeciesControllerTest extends WebTestCase
 {
     use Factory;
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-        self::ensureKernelShutdown();
-    }
-
     private function seed(): void
     {
         $this->em()->persist(new Species('Monstera', 'Monstera deliciosa', 7, LightLevel::BrightIndirect));

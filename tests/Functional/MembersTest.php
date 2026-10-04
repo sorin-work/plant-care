@@ -164,7 +164,7 @@ final class MembersTest extends WebTestCase
         $shared = $this->createHousehold($owner, 'Shared');
         $me = $this->createUser('me@example.com', 'Me');
         $this->createHousehold($me, 'Mine');
-        $membership = $this->addMember($shared, $me, HouseholdRole::Editor);
+        $this->addMember($shared, $me, HouseholdRole::Editor);
         $client->loginUser($me);
 
         $crawler = $client->request('GET', '/');
@@ -177,7 +177,6 @@ final class MembersTest extends WebTestCase
         self::assertSelectorTextContains('.site-nav', 'Mine');
         self::assertNull(static::getContainer()->get(MembershipRepository::class)->findOneFor($shared, $me));
         self::assertNotNull($this->em()->find(\App\Entity\Household::class, $shared->getId()));
-        unset($membership);
     }
 
     public function testLastMemberLeavingDeletesHousehold(): void
