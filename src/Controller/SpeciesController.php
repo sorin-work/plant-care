@@ -9,13 +9,12 @@ use App\Repository\PlantRepository;
 use App\Repository\SpeciesRepository;
 use App\Security\Permission;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/species')]
-final class SpeciesController extends AbstractController
+final class SpeciesController extends AppController
 {
     #[Route('', name: 'species_index', methods: ['GET'])]
     public function index(Request $request, SpeciesRepository $species, CurrentHousehold $current): Response
@@ -32,7 +31,7 @@ final class SpeciesController extends AbstractController
     public function new(Request $request, CurrentHousehold $current, EntityManagerInterface $em): Response
     {
         $household = $current->get();
-        $this->denyAccessUnlessGranted(Permission::EDIT, $household);
+        $this->guard(Permission::EDIT, $household);
 
         $form = $this->createForm(SpeciesType::class, null, ['household' => $household]);
         $form->handleRequest($request);
@@ -53,8 +52,8 @@ final class SpeciesController extends AbstractController
     #[Route('/{id}', name: 'species_show', methods: ['GET'], requirements: ['id' => '\d+'])]
     public function show(Species $species, PlantRepository $plants, CurrentHousehold $current): Response
     {
-        if (null !== $species->getHousehold() && !$this->isGranted(Permission::VIEW, $species->getHousehold())) {
-            throw $this->createNotFoundException();
+        if (null !== $species->getHousehold()) {
+            $this->guard(Permission::VIEW, $species->getHousehold());
         }
 
         return $this->render('species/show.html.twig', [

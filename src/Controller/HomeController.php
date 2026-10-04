@@ -8,11 +8,10 @@ use App\Household\CurrentHousehold;
 use App\Household\HouseholdClock;
 use App\Repository\CareScheduleRepository;
 use App\Repository\PlantRepository;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-final class HomeController extends AbstractController
+final class HomeController extends AppController
 {
     #[Route('/', name: 'home', methods: ['GET'])]
     public function index(CurrentHousehold $current, DueTaskFinder $finder, TaskGrouper $grouper, HouseholdClock $clock, PlantRepository $plants, CareScheduleRepository $schedules): Response
