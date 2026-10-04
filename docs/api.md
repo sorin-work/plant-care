@@ -3,6 +3,13 @@
 A small read/write API for scripts, home automation and other apps. Everything
 the API can do is also available in the web interface.
 
+- [Authentication](#authentication)
+- [Households](#households)
+- [Rate limit](#rate-limit)
+- [Errors](#errors)
+- [Endpoints](#endpoints): `/api/me`, `/api/today`, `/api/plants`,
+  `/api/plants/{id}`, `/api/plants/{id}/journal`, `/api/tasks/{id}/done|skip|snooze`
+
 ## Authentication
 
 Create a personal token on the **Account** page (click your name in the top bar).
