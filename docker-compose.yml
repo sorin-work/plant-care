@@ -22,13 +22,13 @@ services:
     build: .
     restart: unless-stopped
     environment:
-      APP_SECRET: ${APP_SECRET:-local-development-secret-change-me}
+      APP_SECRET: ${SECRET:-local-development-secret-change-me}
       DATABASE_URL: mysql://plantcare:plantcare@db:3306/plantcare?serverVersion=8.4.0&charset=utf8mb4
       DEFAULT_URI: http://localhost:${WEB_PORT:-4414}
       # Creates demo@example.com / demo-password with sample plants on first start.
       SEED_DEMO: ${SEED_DEMO:-true}
-      MAILER_DSN: ${MAILER_DSN:-smtp://mailpit:1025}
-      MAILER_FROM: ${MAILER_FROM:-plants@localhost}
+      MAILER_DSN: ${MAIL_DSN:-smtp://mailpit:1025}
+      MAILER_FROM: ${MAIL_FROM:-plants@localhost}
     volumes:
       - photos:/var/www/app/var/uploads/photos
       # keeps people signed in when the container is recreated
@@ -47,11 +47,11 @@ services:
     restart: unless-stopped
     command: ['sh', '-c', 'while true; do php bin/console app:digest:send --no-interaction; sleep 3600; done']
     environment:
-      APP_SECRET: ${APP_SECRET:-local-development-secret-change-me}
+      APP_SECRET: ${SECRET:-local-development-secret-change-me}
       DATABASE_URL: mysql://plantcare:plantcare@db:3306/plantcare?serverVersion=8.4.0&charset=utf8mb4
       DEFAULT_URI: http://localhost:${WEB_PORT:-4414}
-      MAILER_DSN: ${MAILER_DSN:-smtp://mailpit:1025}
-      MAILER_FROM: ${MAILER_FROM:-plants@localhost}
+      MAILER_DSN: ${MAIL_DSN:-smtp://mailpit:1025}
+      MAILER_FROM: ${MAIL_FROM:-plants@localhost}
     healthcheck:
       disable: true
     depends_on:

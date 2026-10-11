@@ -62,7 +62,9 @@ to start with an empty database.
 | scheduler | -                      | Runs `app:digest:send` every hour                     |
 | mailpit   | http://localhost:4415  | Catches every email the app sends                     |
 
-Ports can be changed with `WEB_PORT` and `MAILPIT_PORT`. Data lives in the
+Ports can be changed with `WEB_PORT` and `MAILPIT_PORT`; `SECRET`, `MAIL_DSN` and
+`MAIL_FROM` set the app secret and real outgoing mail (they have different names
+than the app's own variables because Compose also reads the `.env` file). Data lives in the
 `db-data`, `photos` and `sessions` volumes; `docker compose down -v` removes them.
 
 ## Local development
