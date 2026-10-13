@@ -2,6 +2,7 @@
     "name": "sorin-work/plant-care",
     "description": "Houseplant care tracker with seasonal watering, fertilizing and repotting schedules",
     "type": "project",
+    "version": "1.0.0",
     "license": "MIT",
     "minimum-stability": "stable",
     "prefer-stable": true,
