@@ -984,3 +984,158 @@ plants are always late, who does the watering.
   move the counting into `GROUP BY` queries in `CareEventRepository`.
 - Tests: unit tests for the on-time rule; functional tests for the page with
   a range and for the per-member section being off by default.
+
+## Maybe
+
+### 35. Intervals that learn from what you do
+
+The base interval comes from the species and stays until someone edits it.
+In practice the real rhythm shows in the history: a pothos marked "Did it
+yesterday" three times in a row, or checked and found still wet every time
+(item 11), is on the wrong interval. Some plant apps adjust the interval on
+their own; I am not sure that is a good idea.
+
+- A suggestion, not an automatic change: when the last five or six watering
+  events of a schedule disagree with the interval by more than a day or two on
+  average, the plant page says "You water Monty every 9 days on average, the
+  schedule says 7. Use 9?" with one click to accept.
+- The calculation in a plain `src/Care/IntervalSuggester.php`: take the gaps
+  between done events, undo the seasonal factor of the season each gap fell in
+  (so a winter gap of 11 days counts as 7), drop outliers such as a holiday,
+  and take the median. "Checked, not needed" events lengthen the gap they fall
+  in.
+- Tricky: seasons. Without dividing out the factor, every autumn would
+  suggest longer intervals and every spring shorter ones, and accepting both
+  would undo the seasonal logic.
+- Tricky: late is not the same as needed less. If a plant is watered every 10
+  days because people forget, the plant may be suffering. Only
+  "checked, not needed" and done-early events are real evidence; plain lateness
+  is not. This is the main reason this item is a Maybe.
+- Depends on items 11 and 12: without "checked" events and without corrected
+  history the input is too noisy.
+- Tests: unit tests for the suggester with seasonal gaps, outliers and too few
+  events.
+
+### 36. Push notifications
+
+Email is the only reminder. Many people would rather get a notification on the
+phone, and installing the site to the home screen is close: the layout is
+already responsive and has a theme colour.
+
+- A web app manifest and a small service worker, so the site can be installed.
+  Nothing offline at first; the service worker only receives pushes.
+- Web Push with VAPID keys generated per instance (`minishlink/web-push` in
+  PHP), sent from the same hourly job as the email and with the same rules
+  (item 17): one notification per user per day with "5 things for your plants
+  today".
+- Data: a `PushSubscription` entity per browser (endpoint, keys, user,
+  created, last success), managed from the Account page.
+- Tricky: push goes through the browser vendor's push service (Google, Mozilla,
+  Apple). That is not a service the instance owner signs up for, and the
+  payload is encrypted, but it is a third party seeing that a notification
+  was sent. Make it opt-in per device and say so.
+- Tricky: iOS only delivers web push to sites added to the home screen, and
+  subscriptions expire or are revoked silently. Remove a subscription after
+  the push service answers 404 or 410.
+- Tricky: the service worker must be served from the site root with the right
+  scope, and the CSP (item 33) needs `worker-src 'self'`.
+- Depends on item 17 for the per-user timing rules.
+- Tests: unit tests for building the payload; functional tests for storing and
+  deleting subscriptions and for the job removing a gone subscription, with
+  the push client replaced by a fake.
+
+### 37. Readings from soil sensors
+
+`docs/api.md` names home automation as a use of the API. Cheap soil moisture
+sensors (Xiaomi Mi Flora and similar, read through Home Assistant or ESPHome)
+already know when a pot is dry. Feeding their readings in would turn a guessed
+interval into a measured one.
+
+- `POST /api/plants/{id}/readings` with `moisture` (percent), optionally
+  `light` and `temperature`, and a timestamp. A `Reading` entity, kept for a
+  limited time (90 days) and summarised per day afterwards.
+- Per plant, a "water below N%" threshold. When a reading falls below it, the
+  water task becomes due today, whatever the schedule says; the schedule
+  stays as the fallback when the sensor goes quiet.
+- A small chart on the plant page of the last 30 days.
+- Tricky: sensors drift and die. If no reading came for two days, say so on the
+  plant page and fall back to the schedule.
+- Tricky: volume. A sensor every 15 minutes is about 100 rows a day per plant;
+  for ten plants that is fine, but the summary step keeps it from growing.
+- Tricky: the API token for a sensor bridge should be write-only to readings,
+  which is a scope that item 22 would need to know about.
+- Depends on item 22.
+- Tests: functional tests for posting readings, the threshold making the task
+  due, the staleness rule; unit test for the daily summary.
+
+### 38. Translations
+
+All text is English and written into the Twig templates, PHP flash messages
+and form labels. The households in the demo are in Berlin. Many people would
+use a plant app in their own language, and the `intl` extension is already in
+the image.
+
+- Symfony's translator with XLIFF or YAML catalogues, the user's language on
+  the Account page and `Accept-Language` for signed-out pages.
+- Dates through `format_date` (twig/intl-extra) instead of fixed patterns like
+  `'j M Y'`, so month names follow the language.
+- Species names: the catalog has a common English name; other languages need
+  their own common names in `data/species.json`.
+- Tricky: plural rules ("1 day late", "3 days late") are written as
+  ternaries in templates and PHP. ICU message format handles them, but every
+  string has to be touched.
+- Tricky: the morning email is rendered in the job, without a request; it needs
+  the recipient's language set explicitly.
+- Undecided: whether one more language is worth keeping every string in
+  catalogues forever. I would only do it with someone who maintains the second
+  language.
+- Tests: a functional test that a page renders in the second language, and a
+  lint step (`lint:xliff` or `translation:extract --dump-messages`) that finds
+  untranslated strings.
+
+### 39. Two-step sign in
+
+Accounts are protected by a password only. The data is not sensitive in the
+way bank data is, but a household's photos show the inside of someone's home,
+and an account can invite people and delete households.
+
+- TOTP codes from an authenticator app, with `scheb/2fa-bundle` and its TOTP
+  provider, plus ten one-time recovery codes. Opt-in per user on the Account
+  page.
+- The API stays token-based and is not affected; the calendar feed stays
+  token-based too.
+- Tricky: losing the phone. Recovery codes are the way back; password reset
+  (item 4) must not skip the second step, or it becomes the way around it.
+- Tricky: remember-me cookies. Decide whether a trusted device skips the code
+  for 30 days; the bundle supports trusted devices.
+- Tests: functional tests for enabling, signing in with a code, a wrong code,
+  a recovery code being single use, and reset still asking for the code.
+
+### 40. Large households
+
+The app is built for a home with a few dozen plants, and the queries fit that.
+Some people have hundreds (collectors, offices, a small shop), and several
+places would slow down:
+
+- `CareStats::forHousehold` loads every event in the range as an entity (see
+  item 34).
+- The calendar feed loads every schedule of every household of the user with
+  its plant and room, on every poll from every calendar app.
+- The plant list (`PlantRepository::findActive`) loads all active plants with
+  their schedules, with no paging; the search is a `LIKE` on name and species.
+- `SendDigestCommand` asks for memberships twice per user (`isDue` and
+  `sendTo`) and runs `findDue` per household per user, so a household with
+  five members is queried five times an hour.
+- `DataExport` runs one query per plant for journal entries and one for care
+  events.
+- Approach: a fixture with a household of 1,000 plants and two years of
+  history in a functional test, and assertions on the number of queries with
+  the existing `tests/Support/Doctrine/QueryCounter.php`, not on time. Fix
+  what the counts show: paging on the plant list, `GROUP BY` for stats, a
+  conditional `ETag` for the feed, one `findDue` per household per job run.
+- Tricky: SQLite in tests and MySQL in production plan queries differently.
+  Query counts are the same on both; anything about indexes needs a check
+  against MySQL in the `migrations` job.
+- Undecided: whether anyone runs this at that size. I would only do the parts
+  that also make small households simpler, and keep the fixture test.
+- Tests: the query-count tests above.
