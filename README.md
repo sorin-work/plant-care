@@ -39,6 +39,8 @@ hemisphere decides which months count as winter and summer.
 How intervals change with the seasons is described in [docs/scheduling.md](docs/scheduling.md).
 There is also a small JSON API with personal tokens, see [docs/api.md](docs/api.md).
 
+Ideas for what could come next are in [ROADMAP.md](ROADMAP.md).
+
 ## Running with Docker
 
 ```bash
